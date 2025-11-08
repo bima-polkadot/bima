@@ -16,9 +16,10 @@ app.use(cors());
 app.use(express.json());
 app.use("/storage", express.static(path.join(__dirname, "storage")));
 
-// Ensure uploads directory exists
-fs.ensureDirSync('uploads/images');
-fs.ensureDirSync('uploads/documents');
+// Ensure uploads directories exist (match multer destination under storage/uploads)
+const STORAGE_ROOT = path.join(__dirname, 'storage');
+fs.ensureDirSync(path.join(STORAGE_ROOT, 'uploads', 'images'));
+fs.ensureDirSync(path.join(STORAGE_ROOT, 'uploads', 'documents'));
 
 // JSON file database setup (fallback to file-based persistence)
 const DB_FILE = path.join(__dirname, 'data', 'listings.json');

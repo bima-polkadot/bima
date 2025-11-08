@@ -1,7 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../lib/api";
+import { api, BACKEND_API_URL } from "../lib/api";
 import {
   MapPin,
   Shield,
@@ -117,7 +117,7 @@ const SellLandContent = ({
         }
       });
 
-      const response = await fetch("https://bima-backend.fly.dev/api/listings", {
+      const response = await fetch(`${BACKEND_API_URL}/api/listings`, {
         method: "POST",
         body: submitFormData,
       });
@@ -666,10 +666,10 @@ export default function Hero() {
         console.error("Failed to fetch chain listings:", error);
       }
 
-      // Fetch from deployed backend (Fly.io)
+      // Fetch from backend (env-configured)
       let localListings: LandListing[] = [];
       try {
-        const response = await fetch("https://bima-backend.fly.dev/api/listings");
+        const response = await fetch(`${BACKEND_API_URL}/api/listings`);
         if (response.ok) {
           const data = await response.json();
           localListings = data.map(
@@ -691,7 +691,7 @@ export default function Hero() {
                   "from-emerald-500/20 via-teal-500/20 to-cyan-500/20",
                 lastUpdated: new Date(listing.createdAt).toLocaleDateString(),
                 imageUrl: listing.images?.[0]?.path
-                  ? `https://bima-backend.fly.dev${listing.images[0].path}`
+                  ? `${BACKEND_API_URL}${listing.images[0].path}`
                   : undefined,
                 description: listing.description,
                 landType: listing.landType,
