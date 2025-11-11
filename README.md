@@ -9,8 +9,6 @@
 
 ## 📋 Project Documentation
 - **📊 Pitch Deck**: [View Our Presentation](https://docs.google.com/presentation/d/10I7Pw_kjgIZsvBHhTH_MazTGst457HE0/edit?usp=sharing&ouid=103572532230510575942&rtpof=true&sd=true)
-- **🔐 Hedera Certification**: [View Certification Badge](https://drive.google.com/file/d/1A-kfDIbVlSURD9H2LO_Rzdoecd2P3Qpk/view?usp=sharing)
-- **👥 Judging Access**: Collaborator invited: `Hackathon@hashgraph-association.com`
 
 ## 🌍 Overview
 
