@@ -89,10 +89,27 @@
     "price": "800000",
     "location": "Nairobi",
     "metadataHash": "QmdRLhkDPWcc91yo6X3HSgdCP85ojcKYjd5dNgmWPMx83s",
-    "approvals": [],
-    "verified": false,
-    "status": "pending",
-    "submittedAt": "2025-11-02T04:06:55.084Z"
+    "approvals": [
+      "Chief",
+      "Surveyor"
+    ],
+    "verified": true,
+    "status": "minted",
+    "submittedAt": "2025-11-02T04:06:55.084Z",
+    "verificationHistory": [
+      {
+        "role": "Chief",
+        "name": "jjj",
+        "date": "2025-11-12T00:29:19.011Z"
+      },
+      {
+        "role": "Surveyor",
+        "name": "klik",
+        "date": "2025-11-12T00:29:35.323Z"
+      }
+    ],
+    "nftMinted": true,
+    "nftSerial": null
   },
   {
     "landId": 1762056905703,
@@ -100,9 +117,37 @@
     "price": "600000",
     "location": "Thika",
     "metadataHash": "QmQh6WK5kbVLcF5yFa7HDcuXoFxorgtzTr16nkUYYXmVrC",
+    "approvals": [
+      "Chief",
+      "Surveyor"
+    ],
+    "verified": true,
+    "status": "minted",
+    "submittedAt": "2025-11-02T04:15:05.703Z",
+    "verificationHistory": [
+      {
+        "role": "Chief",
+        "name": "kikik",
+        "date": "2025-11-12T00:30:06.763Z"
+      },
+      {
+        "role": "Surveyor",
+        "name": "lkik",
+        "date": "2025-11-12T00:30:15.564Z"
+      }
+    ],
+    "nftMinted": true,
+    "nftSerial": null
+  },
+  {
+    "landId": 1762907641458,
+    "size": "300acres",
+    "price": "500000",
+    "location": "Kiambu",
+    "metadataHash": "local-1762907641406",
     "approvals": [],
     "verified": false,
     "status": "pending",
-    "submittedAt": "2025-11-02T04:15:05.703Z"
+    "submittedAt": "2025-11-12T00:34:01.458Z"
   }
 ]

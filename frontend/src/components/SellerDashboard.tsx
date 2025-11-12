@@ -40,23 +40,7 @@ interface LandListing {
   metadataHash?: string; // Added for minting
 }
 
-interface SellerStats {
-  totalListings: number;
-  activeListings: number;
-  soldProperties: number;
-  totalRevenue: string;
-  averageVerificationTime: string;
-  successRate: number;
-}
-
-const sellerStats: SellerStats = {
-  totalListings: 8,
-  activeListings: 3,
-  soldProperties: 2,
-  totalRevenue: "78,500,000 KES",
-  averageVerificationTime: "5.2 days",
-  successRate: 95,
-};
+// Dynamic seller metrics computed from current listings
 
 const statusConfig = {
   draft: {
@@ -133,23 +117,63 @@ export default function SellerDashboard() {
   const [savingEdit, setSavingEdit] = useState(false);
   // Substrate create/transfer inputs and status
   const [chainSender, setChainSender] = useState("");
-  const [landIdInput, setLandIdInput] = useState("");
-  const [ipfsCidInput, setIpfsCidInput] = useState("");
-  const [geoHashInput, setGeoHashInput] = useState("");
   const [newOwnerInput, setNewOwnerInput] = useState("");
   const [chainBusy, setChainBusy] = useState(false);
-  const [chainMsg, setChainMsg] = useState<string | null>(null);
   const walletAddress = useWalletStore((s) => s.address);
   const { push } = useToast();
   // Simplified on-chain flow state
-  const [generatedCid, setGeneratedCid] = useState<string | null>(null);
   const [generatedLandId, setGeneratedLandId] = useState<number | null>(null);
+  const [kesPerDot, setKesPerDot] = useState<number | null>(null);
+
+  // Compute dynamic metrics from current listings
+  const totalListings = chainListings.length;
+  const activeListings = chainListings.filter((l) => l.status === 'pending-verification' || l.status === 'verified' || l.status === 'listed').length;
+  const totalRevenueKES = chainListings
+    .filter((l) => l.status === 'sold')
+    .reduce((sum, l) => {
+      const n = parseFloat((l.price || '').toString().replace(/[^0-9.]/g, '')) || 0;
+      return sum + n;
+    }, 0);
+  const totalRevenueDOT = kesPerDot && kesPerDot > 0 ? totalRevenueKES / kesPerDot : 0;
+  const totalRevenueDisplay = `${totalRevenueDOT.toLocaleString(undefined, { maximumFractionDigits: 4 })} DOT`;
+
+  // Convert static KES-based breakdown to DOT for display
+  const platformFeesKES = 2355000;
+  const verificationCostsKES = 450000;
+  const platformFeesDOT = kesPerDot && kesPerDot > 0 ? platformFeesKES / kesPerDot : 0;
+  const verificationCostsDOT = kesPerDot && kesPerDot > 0 ? verificationCostsKES / kesPerDot : 0;
+  const netRevenueDOT = Math.max(totalRevenueDOT - platformFeesDOT - verificationCostsDOT, 0);
+
+  const sellerStats = {
+    successRate:
+      totalListings > 0
+        ? Math.round(
+            (chainListings.filter((l) => l.status === 'sold').length / totalListings) * 100,
+          )
+        : 0,
+    totalRevenue: totalRevenueDisplay,
+    averageVerificationTime: 'N/A',
+  };
 
   useEffect(() => {
     if (walletAddress) {
       setChainSender(walletAddress);
     }
   }, [walletAddress]);
+
+  useEffect(() => {
+    async function loadRate() {
+      try {
+        const r = await fetch(
+          'https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=kes',
+        );
+        const j = await r.json();
+        const v = j?.polkadot?.kes;
+        if (typeof v === 'number' && v > 0) setKesPerDot(v);
+      } catch {}
+    }
+    loadRate();
+  }, []);
 
   function deriveLandIdFromCid(cid: string): number {
     // 64-bit FNV-1a like hash, reduced to safe JS number
@@ -163,70 +187,7 @@ export default function SellerDashboard() {
     return u64 > 0 ? u64 : Math.abs(u64);
   }
 
-  // Generate IPFS CID from current form and uploads, then derive landId
-  async function handleGenerateCid() {
-    try {
-      push({ variant: 'default', title: 'Generating CID', description: 'Uploading metadata to IPFS…' });
-      // Upload selected images and docs to IPFS as needed
-      let titleDeedHash: string | null = null;
-      let surveyReportHash: string | null = null;
-      const additional: string[] = [];
-      try {
-        if (uploadedDocs.titleDeed) {
-          const res = await api.uploadFileToIPFS(uploadedDocs.titleDeed as any);
-          titleDeedHash = res?.ipfsHash || null;
-        }
-        if (uploadedDocs.surveyReport) {
-          const res = await api.uploadFileToIPFS(uploadedDocs.surveyReport as any);
-          surveyReportHash = res?.ipfsHash || null;
-        }
-        for (const img of uploadedImages) {
-          const res = await api.uploadFileToIPFS(img as any);
-          if (res?.ipfsHash) additional.push(res.ipfsHash);
-        }
-      } catch (e) {
-        // Continue even if uploads partially fail
-      }
-
-      const images = Array.isArray(additional) ? additional.map((cid) => ({ cid })) : [];
-      const documents: Array<{ name: string; type: 'title-deed' | 'survey' | 'certificate' | 'inspection'; cid: string; }>
-        = [];
-      if (titleDeedHash) documents.push({ name: 'Title Deed', type: 'title-deed', cid: titleDeedHash });
-      if (surveyReportHash) documents.push({ name: 'Survey Report', type: 'survey', cid: surveyReportHash });
-
-      const metadata = {
-        title: formData.title,
-        size: formData.size,
-        price: formData.price,
-        location: formData.location,
-        description: formData.description,
-        landType: formData.landType,
-        zoning: formData.zoning,
-        utilities: formData.utilities,
-        accessibility: formData.accessibility,
-        nearbyAmenities: formData.nearbyAmenities,
-        seller: {
-          name: formData.sellerName,
-          phone: formData.sellerPhone,
-          email: formData.sellerEmail,
-        },
-        images,
-        documents,
-        timestamp: new Date().toISOString(),
-        status: 'pending',
-      };
-
-      const up = await api.uploadJSONToIPFS(metadata);
-      const cid = up?.ipfsHash;
-      if (!cid) throw new Error('Failed to upload metadata to IPFS');
-      const lid = deriveLandIdFromCid(cid);
-      setGeneratedCid(cid);
-      setGeneratedLandId(lid);
-      push({ variant: 'success', title: 'CID Generated', description: `${cid}` });
-    } catch (e: any) {
-      push({ variant: 'error', title: 'Failed to generate CID', description: e?.message || String(e) });
-    }
-  }
+  // Note: CID generation is now performed inside handleSubmit; hidden from the seller.
 
   useEffect(() => {
     async function loadParcels() {
@@ -281,41 +242,17 @@ export default function SellerDashboard() {
     }
   };
 
-  // Substrate: create land record
-  async function handleCreateOnChain() {
-    setChainMsg(null);
-    try {
-      setChainBusy(true);
-      if (!chainSender) throw new Error("Sender address required");
-      if (!generatedCid || !generatedLandId) throw new Error("Generate CID first to get landId");
-      const txHash = await BIMA_CHAIN.createLandRecord(chainSender, {
-        landId: generatedLandId,
-        ipfsCid: generatedCid,
-        geoHash: undefined, // default zeroed geohash
-      });
-      setChainMsg(`Created on-chain. Tx: ${txHash}`);
-      push({ variant: 'success', title: 'Create Land Record', description: `Included: ${txHash}` });
-    } catch (e: any) {
-      setChainMsg(e?.message || String(e));
-      push({ variant: 'error', title: 'Create Land Record Failed', description: e?.message || String(e) });
-    } finally {
-      setChainBusy(false);
-    }
-  }
-
   // Substrate: transfer ownership
-  async function handleTransferOnChain() {
-    setChainMsg(null);
+  async function handleTransferOnChain(landIdOverride?: number) {
     try {
       setChainBusy(true);
-      if (!generatedLandId) throw new Error("No Land ID. Generate CID or load listing first");
+      const landId = landIdOverride ?? generatedLandId;
+      if (!landId) throw new Error("No Land ID. Generate CID or load listing first");
       if (!chainSender) throw new Error("Sender address required");
       if (!newOwnerInput) throw new Error("New owner address required");
-      const txHash = await BIMA_CHAIN.transferOwnership(chainSender, generatedLandId, newOwnerInput);
-      setChainMsg(`Ownership transferred. Tx: ${txHash}`);
+      const txHash = await BIMA_CHAIN.transferOwnership(chainSender, landId, newOwnerInput);
       push({ variant: 'success', title: 'Transfer Ownership', description: `Included: ${txHash}` });
     } catch (e: any) {
-      setChainMsg(e?.message || String(e));
       push({ variant: 'error', title: 'Transfer Failed', description: e?.message || String(e) });
     } finally {
       setChainBusy(false);
@@ -549,6 +486,21 @@ export default function SellerDashboard() {
       try {
         const result = await api.uploadJSONToIPFS(metadata);
         metadataHash = result.ipfsHash;
+        const lid = deriveLandIdFromCid(metadataHash);
+        setGeneratedLandId(lid);
+        // Perform on-chain registration behind the scenes
+        try {
+          const sender = walletAddress || chainSender;
+          if (!sender) throw new Error('Connect wallet to register on-chain');
+          const txHash = await BIMA_CHAIN.createLandRecord(sender, {
+            landId: lid,
+            ipfsCid: metadataHash,
+            geoHash: undefined,
+          });
+          push({ variant: 'success', title: 'Registered On-chain', description: `Tx: ${txHash}` });
+        } catch (chainErr: any) {
+          push({ variant: 'warning', title: 'On-chain registration skipped', description: chainErr?.message || String(chainErr) });
+        }
       } catch (error) {
         console.warn("Metadata IPFS upload warning:", error);
         metadataHash = `local-${Date.now()}`; // Fallback metadata hash
@@ -615,8 +567,8 @@ export default function SellerDashboard() {
           isDraft
             ? "Listing created successfully!"
             : hederaSuccess
-              ? "Listing submitted successfully and registered on Polkadot blockchain!"
-              : "Listing submitted successfully! (Polkadot registration pending)",
+              ? "Listing submitted successfully and registered on-chain!"
+              : "Listing submitted successfully! (On-chain registration pending)",
         );
 
         // Reset form
@@ -696,7 +648,7 @@ export default function SellerDashboard() {
                 </span>
               </div>
               <div className="text-2xl font-bold text-foreground">
-                {sellerStats.totalListings}
+                {totalListings}
               </div>
             </div>
 
@@ -710,7 +662,7 @@ export default function SellerDashboard() {
                 </span>
               </div>
               <div className="text-2xl font-bold text-foreground">
-                {sellerStats.activeListings}
+                {activeListings}
               </div>
             </div>
 
@@ -724,7 +676,7 @@ export default function SellerDashboard() {
                 </span>
               </div>
               <div className="text-2xl font-bold text-foreground">
-                {sellerStats.totalRevenue}
+                {totalRevenueDisplay}
               </div>
             </div>
 
@@ -907,6 +859,24 @@ export default function SellerDashboard() {
                       </div>
                     )}
 
+                    {/* Ownership Transfer */}
+                    <div className="mb-4 flex flex-col md:flex-row gap-2 md:items-center">
+                      <input
+                        type="text"
+                        placeholder="New owner address"
+                        value={newOwnerInput}
+                        onChange={(e) => setNewOwnerInput(e.target.value)}
+                        className="px-3 py-2 rounded-lg bg-card/50 border border-border/50 focus:border-primary/50 focus:outline-none text-sm w-full md:w-80"
+                      />
+                      <button
+                        onClick={() => handleTransferOnChain(Number(listing.id))}
+                        disabled={chainBusy || !newOwnerInput}
+                        className="px-3 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {chainBusy ? 'Transferring...' : 'Transfer Ownership'}
+                      </button>
+                    </div>
+
                     {/* Verification Progress */}
                     {listing.status === "pending-verification" && (
                       <div className="mb-4 p-4 rounded-lg bg-card/30 border border-border/30">
@@ -1074,19 +1044,23 @@ export default function SellerDashboard() {
                       <span className="text-muted-foreground">
                         Platform Fees
                       </span>
-                      <span className="font-medium">2,355,000 KES</span>
+                      <span className="font-medium">
+                        {platformFeesDOT.toLocaleString(undefined, { maximumFractionDigits: 4 })} DOT
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">
                         Verification Costs
                       </span>
-                      <span className="font-medium">450,000 KES</span>
+                      <span className="font-medium">
+                        {verificationCostsDOT.toLocaleString(undefined, { maximumFractionDigits: 4 })} DOT
+                      </span>
                     </div>
                     <div className="border-t border-border/50 pt-2">
                       <div className="flex justify-between items-center">
                         <span className="font-medium">Net Revenue</span>
                         <span className="font-bold text-primary">
-                          75,695,000 KES
+                          {netRevenueDOT.toLocaleString(undefined, { maximumFractionDigits: 4 })} DOT
                         </span>
                       </div>
                     </div>
@@ -1106,27 +1080,7 @@ export default function SellerDashboard() {
             >
               <h2 className="text-2xl font-bold">Create New Land Listing</h2>
 
-              {/* On-chain Registry (Substrate) */}
-              <div className="p-6 rounded-xl bg-card/40 border border-border/50">
-                <h3 className="text-lg font-bold mb-2">On-chain Registry (Substrate)</h3>
-                <p className="text-xs text-muted-foreground mb-4">1) Generate CID from your form and files. 2) Register on-chain. GeoHash is handled automatically.</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Sender Address (ss58)" value={chainSender} readOnly />
-                  <div className="grid grid-cols-1 gap-2">
-                    <button onClick={handleGenerateCid} className="rounded-md bg-card border border-border/50 hover:border-primary/50 px-3 py-2 text-sm">Save & Generate CID</button>
-                  </div>
-                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2" placeholder="Generated Land ID" value={generatedLandId ?? ''} readOnly />
-                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2" placeholder="Generated IPFS CID" value={generatedCid ?? ''} readOnly />
-                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2" placeholder="New Owner (ss58, for transfer)" value={newOwnerInput} onChange={(e)=>setNewOwnerInput(e.target.value)} />
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button onClick={handleCreateOnChain} disabled={chainBusy || !generatedCid || !generatedLandId} className="rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm disabled:opacity-60">{chainBusy ? 'Submitting…' : 'Register On-chain'}</button>
-                  <button onClick={handleTransferOnChain} disabled={chainBusy || !generatedLandId} className="rounded-md bg-card border border-border/50 hover:border-primary/50 px-3 py-2 text-sm disabled:opacity-60">{chainBusy ? 'Submitting…' : 'Transfer Ownership'}</button>
-                </div>
-                {chainMsg && (
-                  <div className="mt-3 text-sm text-muted-foreground break-all">{chainMsg}</div>
-                )}
-              </div>
+              {/* On-chain registry is handled automatically after you submit. */}
 
               <div className="max-w-4xl">
                 <div className="p-8 rounded-xl bg-card/40 backdrop-blur-sm border border-border/50">
@@ -1511,6 +1465,9 @@ export default function SellerDashboard() {
                           : "Submit for Verification"}
                       </button>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Your listing will be registered on-chain automatically.
+                    </p>
                   </div>
                 </div>
               </div>
