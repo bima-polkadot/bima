@@ -5,6 +5,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { connectWallet, getBalanceFormatted, isExtensionAvailable } from '@/wallet/polkadotConnector';
 import { Link, useLocation } from 'react-router-dom';
+import { useWalletStore } from '@/state/wallet';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,6 +16,8 @@ const Header: React.FC = () => {
   const [isBalanceLoading, setIsBalanceLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const location = useLocation();
+  const setAddress = useWalletStore((s) => s.setAddress);
+  const setDotBalance = useWalletStore((s) => s.setDotBalance);
 
   const navLinks = [
     { name: "Home", id: "home", to: "/" },
@@ -42,9 +45,11 @@ const Header: React.FC = () => {
       setIsBalanceLoading(true);
       const balStr = await getBalanceFormatted(address);
       setDotBalanceStr(balStr);
+      setDotBalance(balStr);
     } catch (err) {
       console.error('Failed to fetch Polkadot balance', err);
       setDotBalanceStr(null);
+      setDotBalance(null);
     }
     finally {
       setIsBalanceLoading(false);
@@ -60,6 +65,7 @@ const Header: React.FC = () => {
       const first = accounts?.[0]?.address;
       if (first) {
         setAccountId(first);
+        setAddress(first);
         fetchAccountInfo(first);
       } else {
         setErrorMsg('No Polkadot accounts found in the extension. Create or import an account and try again.');
@@ -82,6 +88,8 @@ const Header: React.FC = () => {
     setAccountId(null);
     setDotBalanceStr(null);
     setErrorMsg(null);
+    setAddress(null);
+    setDotBalance(null);
   };
 
   const extAvailable = isExtensionAvailable();

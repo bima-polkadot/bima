@@ -12,6 +12,7 @@ import SellerDashboard from './components/SellerDashboard';
 import LandDetails from './components/LandDetails';
 
 import './index.css';
+import { ToastProvider } from './components/toast/ToastProvider';
 
 
 const router = createBrowserRouter([
@@ -82,6 +83,8 @@ if (!rootElement) {
 }
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <ToastProvider>
+      <RouterProvider router={router} />
+    </ToastProvider>
   </React.StrictMode>
 );

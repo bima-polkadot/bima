@@ -18,6 +18,9 @@ import {
   X,
 } from "lucide-react";
 import { api } from "../lib/api";
+import { BIMA_CHAIN } from "@/chain";
+import { useWalletStore } from "@/state/wallet";
+import { useToast } from "@/components/toast/ToastProvider";
 
 interface LandListing {
   id: string;
@@ -128,6 +131,22 @@ export default function SellerDashboard() {
   const [editMeta, setEditMeta] = useState<any>(null);
   const [editFiles, setEditFiles] = useState<File[]>([]);
   const [savingEdit, setSavingEdit] = useState(false);
+  // Substrate create/transfer inputs and status
+  const [chainSender, setChainSender] = useState("");
+  const [landIdInput, setLandIdInput] = useState("");
+  const [ipfsCidInput, setIpfsCidInput] = useState("");
+  const [geoHashInput, setGeoHashInput] = useState("");
+  const [newOwnerInput, setNewOwnerInput] = useState("");
+  const [chainBusy, setChainBusy] = useState(false);
+  const [chainMsg, setChainMsg] = useState<string | null>(null);
+  const walletAddress = useWalletStore((s) => s.address);
+  const { push } = useToast();
+
+  useEffect(() => {
+    if (walletAddress) {
+      setChainSender(walletAddress);
+    }
+  }, [walletAddress]);
 
   useEffect(() => {
     async function loadParcels() {
@@ -181,6 +200,50 @@ export default function SellerDashboard() {
       setEditOpen(true);
     }
   };
+
+  // Substrate: create land record
+  async function handleCreateOnChain() {
+    setChainMsg(null);
+    try {
+      setChainBusy(true);
+      const idNum = Number(landIdInput);
+      if (!Number.isFinite(idNum)) throw new Error("Invalid landId");
+      if (!chainSender) throw new Error("Sender address required");
+      if (!ipfsCidInput) throw new Error("ipfsCid required");
+      const txHash = await BIMA_CHAIN.createLandRecord(chainSender, {
+        landId: idNum,
+        ipfsCid: ipfsCidInput,
+        geoHash: geoHashInput || undefined,
+      });
+      setChainMsg(`Created on-chain. Tx: ${txHash}`);
+      push({ variant: 'success', title: 'Create Land Record', description: `Included: ${txHash}` });
+    } catch (e: any) {
+      setChainMsg(e?.message || String(e));
+      push({ variant: 'error', title: 'Create Land Record Failed', description: e?.message || String(e) });
+    } finally {
+      setChainBusy(false);
+    }
+  }
+
+  // Substrate: transfer ownership
+  async function handleTransferOnChain() {
+    setChainMsg(null);
+    try {
+      setChainBusy(true);
+      const idNum = Number(landIdInput);
+      if (!Number.isFinite(idNum)) throw new Error("Invalid landId");
+      if (!chainSender) throw new Error("Sender address required");
+      if (!newOwnerInput) throw new Error("New owner address required");
+      const txHash = await BIMA_CHAIN.transferOwnership(chainSender, idNum, newOwnerInput);
+      setChainMsg(`Ownership transferred. Tx: ${txHash}`);
+      push({ variant: 'success', title: 'Transfer Ownership', description: `Included: ${txHash}` });
+    } catch (e: any) {
+      setChainMsg(e?.message || String(e));
+      push({ variant: 'error', title: 'Transfer Failed', description: e?.message || String(e) });
+    } finally {
+      setChainBusy(false);
+    }
+  }
 
   const handleEditFiles = (files: FileList | null) => {
     if (!files) return;
@@ -737,6 +800,34 @@ export default function SellerDashboard() {
                             statusConfig[listing.status].icon,
                             { className: "w-3 h-3" },
                           )}
+
+          {/* Create Tab: add small Substrate form */}
+          {activeTab === "create" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="space-y-6"
+            >
+              <div className="p-6 rounded-xl bg-card/40 border border-border/50">
+                <h3 className="text-lg font-bold mb-4">On-chain Registry (Substrate)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Sender Address (ss58)" value={chainSender} readOnly />
+                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Land ID (number)" value={landIdInput} onChange={(e)=>setLandIdInput(e.target.value)} />
+                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2" placeholder="IPFS CID (e.g., bafy...)" value={ipfsCidInput} onChange={(e)=>setIpfsCidInput(e.target.value)} />
+                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2" placeholder="GeoHash (0x.. 32 bytes, optional)" value={geoHashInput} onChange={(e)=>setGeoHashInput(e.target.value)} />
+                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2" placeholder="New Owner (ss58, for transfer)" value={newOwnerInput} onChange={(e)=>setNewOwnerInput(e.target.value)} />
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button onClick={handleCreateOnChain} disabled={chainBusy} className="rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm disabled:opacity-60">{chainBusy ? 'Submitting…' : 'Create Land Record'}</button>
+                  <button onClick={handleTransferOnChain} disabled={chainBusy} className="rounded-md bg-card border border-border/50 hover:border-primary/50 px-3 py-2 text-sm disabled:opacity-60">{chainBusy ? 'Submitting…' : 'Transfer Ownership'}</button>
+                </div>
+                {chainMsg && (
+                  <div className="mt-3 text-sm text-muted-foreground break-all">{chainMsg}</div>
+                )}
+              </div>
+            </motion.div>
+          )}
                           {statusConfig[listing.status].label}
                         </div>
                       </div>
