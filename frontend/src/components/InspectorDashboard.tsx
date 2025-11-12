@@ -141,10 +141,9 @@ export default function InspectorDashboard() {
   const [activeTab, setActiveTab] = useState<'requests' | 'completed' | 'profile'>('requests');
   const [] = useState<VerificationRequest | null>(null);
   const [verifyForm, setVerifyForm] = useState<VerifyForm>({ landId: '', role: 'Chief', name: '' });
-  const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
   const [parcels, setParcels] = useState<Parcel[]>([]);
   const [loadingParcels, setLoadingParcels] = useState<boolean>(false);
-  const [submitting, setSubmitting] = useState<boolean>(false);
+  // removed backend submitting state
   // Substrate-based verification
   const [substrateSender, setSubstrateSender] = useState('');
   const [substrateLandId, setSubstrateLandId] = useState('');
@@ -164,9 +163,9 @@ export default function InspectorDashboard() {
       const idNum = Number(substrateLandId);
       if (!Number.isFinite(idNum)) throw new Error('Invalid landId');
       if (!substrateSender) throw new Error('Sender address required');
-      const txHash = await BIMA_CHAIN.verifyLandRecord(substrateSender, idNum);
-      setSubstrateMsg(`Verification submitted. Tx: ${txHash}`);
-      push({ variant: 'success', title: 'Verification Submitted', description: `Included: ${txHash}` });
+      const txHash = await BIMA_CHAIN.verifyWithRole(substrateSender, idNum, verifyForm.role);
+      setSubstrateMsg(`Verification (${verifyForm.role}) submitted. Tx: ${txHash}`);
+      push({ variant: 'success', title: `Verification (${verifyForm.role})`, description: `Included: ${txHash}` });
     } catch (e: any) {
       setSubstrateMsg(e?.message || String(e));
       push({ variant: 'error', title: 'Verification Failed', description: e?.message || String(e) });
@@ -193,31 +192,7 @@ export default function InspectorDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function submitVerification(e: React.FormEvent) {
-    e.preventDefault();
-    setVerifyMsg(null);
-    try {
-      setSubmitting(true);
-      const landIdNum = Number(verifyForm.landId);
-      if (!Number.isFinite(landIdNum)) {
-        setVerifyMsg('Invalid Land ID');
-        return;
-      }
-      // Send role exactly as backend expects (e.g., "Chief" or "Surveyor")
-      const body = { landId: landIdNum, role: verifyForm.role as any, name: verifyForm.name };
-      const res = await api.verifyLand(body);
-      setVerifyMsg(`Success. Verified: ${String(res?.verified)}. Status: ${res?.status ?? res?.state ?? 'updated'}.`);
-      await loadPendingParcels();
-    } catch (err: any) {
-      const status = err?.response?.status;
-      const data = err?.response?.data;
-      const backendMsg = (data && typeof data === 'object') ? JSON.stringify(data) : (data || err?.message);
-      const msg = backendMsg || 'Verification failed';
-      setVerifyMsg(status ? `HTTP ${status}: ${msg}` : String(msg));
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  // removed backend submitVerification; on-chain verify handled by verifyOnChain()
 
   const pendingRequests = mockRequests.filter(req => req.status === 'pending' || req.status === 'in-progress');
   const completedRequests = mockRequests.filter(req => req.status === 'completed');
@@ -335,38 +310,26 @@ export default function InspectorDashboard() {
             >
               <div className="p-4 rounded-xl bg-card/40 border border-border/50">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-bold">Backend Verification</h3>
+                  <h3 className="text-lg font-bold">On-chain Verification</h3>
                   <button onClick={loadPendingParcels} disabled={loadingParcels} className="text-sm px-3 py-1 rounded-md bg-card border border-border/50 hover:border-primary/50 disabled:opacity-60">
                     {loadingParcels ? 'Refreshing…' : 'Refresh Pending Parcels'}
                   </button>
                 </div>
-                <form onSubmit={submitVerification} className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Land ID" value={verifyForm.landId} onChange={(e)=>setVerifyForm(v=>({ ...v, landId: e.target.value }))} />
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Sender Address (ss58)" value={substrateSender} readOnly />
+                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Land ID (number)" value={substrateLandId} onChange={(e)=>setSubstrateLandId(e.target.value)} />
                   <select className="rounded-md border border-input bg-background px-3 py-2 text-sm" value={verifyForm.role} onChange={(e)=>setVerifyForm(v=>({ ...v, role: e.target.value as any }))}>
                     <option value="Chief">Chief</option>
                     <option value="Surveyor">Surveyor</option>
                   </select>
-                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Your Name" value={verifyForm.name} onChange={(e)=>setVerifyForm(v=>({ ...v, name: e.target.value }))} />
-                  <button type="submit" disabled={submitting || !verifyForm.landId || !verifyForm.name} className="rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm disabled:opacity-60">
-                    {submitting ? 'Submitting…' : 'Submit Approval'}
+                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Inspector Name (optional)" value={verifyForm.name} onChange={(e)=>setVerifyForm(v=>({ ...v, name: e.target.value }))} />
+                  <button onClick={verifyOnChain} disabled={substrateBusy} className="rounded-md bg-card border border-border/50 hover:border-primary/50 px-3 py-2 text-sm disabled:opacity-60">
+                    {substrateBusy ? 'Submitting…' : 'Verify On-chain'}
                   </button>
-                </form>
-                {verifyMsg && <p className="mt-2 text-sm text-muted-foreground">{verifyMsg}</p>}
-
-                {/* Substrate on-chain verification block */}
-                <div className="mt-6 pt-4 border-t border-border/40">
-                  <h4 className="text-sm font-semibold mb-2">On-chain Verification (Substrate)</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Sender Address (ss58)" value={substrateSender} readOnly />
-                    <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Land ID (number)" value={substrateLandId} onChange={(e)=>setSubstrateLandId(e.target.value)} />
-                    <button onClick={verifyOnChain} disabled={substrateBusy} className="rounded-md bg-card border border-border/50 hover:border-primary/50 px-3 py-2 text-sm disabled:opacity-60">
-                      {substrateBusy ? 'Submitting…' : 'Verify On-chain'}
-                    </button>
-                  </div>
-                  {substrateMsg && <div className="mt-2 text-sm text-muted-foreground break-all">{substrateMsg}</div>}
                 </div>
+                {substrateMsg && <div className="mt-2 text-sm text-muted-foreground break-all">{substrateMsg}</div>}
 
-                {/* Pending parcels list */}
+                {/* Pending parcels list (from chain service) */}
                 {parcels.length > 0 ? (
                   <div className="mt-4 text-sm">
                     <div className="font-medium mb-1">Pending Parcels</div>
