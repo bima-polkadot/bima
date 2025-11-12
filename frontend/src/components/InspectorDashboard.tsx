@@ -7,6 +7,9 @@ import {
 import { useState, useEffect } from "react";
 import { api } from '../lib/api';
 import React from "react";
+import { BIMA_CHAIN } from '@/chain';
+import { useWalletStore } from '@/state/wallet';
+import { useToast } from '@/components/toast/ToastProvider';
 
 interface VerificationRequest {
   id: string;
@@ -85,7 +88,7 @@ const mockRequests: VerificationRequest[] = [
     compensation: "2,000 DOT",
     requiredInspectors: 2,
     currentInspectors: 2
-  }
+}
 ];
 
 const inspectorStats: InspectorStats = {
@@ -143,6 +146,34 @@ export default function InspectorDashboard() {
   const [loadingParcels, setLoadingParcels] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
   // Substrate-based verification
+  const [substrateSender, setSubstrateSender] = useState('');
+  const [substrateLandId, setSubstrateLandId] = useState('');
+  const [substrateBusy, setSubstrateBusy] = useState(false);
+  const [substrateMsg, setSubstrateMsg] = useState<string | null>(null);
+  const walletAddress = useWalletStore((s) => s.address);
+  const { push } = useToast();
+
+  useEffect(() => {
+    if (walletAddress) setSubstrateSender(walletAddress);
+  }, [walletAddress]);
+
+  async function verifyOnChain() {
+    setSubstrateMsg(null);
+    try {
+      setSubstrateBusy(true);
+      const idNum = Number(substrateLandId);
+      if (!Number.isFinite(idNum)) throw new Error('Invalid landId');
+      if (!substrateSender) throw new Error('Sender address required');
+      const txHash = await BIMA_CHAIN.verifyLandRecord(substrateSender, idNum);
+      setSubstrateMsg(`Verification submitted. Tx: ${txHash}`);
+      push({ variant: 'success', title: 'Verification Submitted', description: `Included: ${txHash}` });
+    } catch (e: any) {
+      setSubstrateMsg(e?.message || String(e));
+      push({ variant: 'error', title: 'Verification Failed', description: e?.message || String(e) });
+    } finally {
+      setSubstrateBusy(false);
+    }
+  }
 
   async function loadPendingParcels() {
     try {
@@ -321,6 +352,21 @@ export default function InspectorDashboard() {
                   </button>
                 </form>
                 {verifyMsg && <p className="mt-2 text-sm text-muted-foreground">{verifyMsg}</p>}
+
+                {/* Substrate on-chain verification block */}
+                <div className="mt-6 pt-4 border-t border-border/40">
+                  <h4 className="text-sm font-semibold mb-2">On-chain Verification (Substrate)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Sender Address (ss58)" value={substrateSender} readOnly />
+                    <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Land ID (number)" value={substrateLandId} onChange={(e)=>setSubstrateLandId(e.target.value)} />
+                    <button onClick={verifyOnChain} disabled={substrateBusy} className="rounded-md bg-card border border-border/50 hover:border-primary/50 px-3 py-2 text-sm disabled:opacity-60">
+                      {substrateBusy ? 'Submitting…' : 'Verify On-chain'}
+                    </button>
+                  </div>
+                  {substrateMsg && <div className="mt-2 text-sm text-muted-foreground break-all">{substrateMsg}</div>}
+                </div>
+
+                {/* Pending parcels list */}
                 {parcels.length > 0 ? (
                   <div className="mt-4 text-sm">
                     <div className="font-medium mb-1">Pending Parcels</div>
