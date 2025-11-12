@@ -141,12 +141,92 @@ export default function SellerDashboard() {
   const [chainMsg, setChainMsg] = useState<string | null>(null);
   const walletAddress = useWalletStore((s) => s.address);
   const { push } = useToast();
+  // Simplified on-chain flow state
+  const [generatedCid, setGeneratedCid] = useState<string | null>(null);
+  const [generatedLandId, setGeneratedLandId] = useState<number | null>(null);
 
   useEffect(() => {
     if (walletAddress) {
       setChainSender(walletAddress);
     }
   }, [walletAddress]);
+
+  function deriveLandIdFromCid(cid: string): number {
+    // 64-bit FNV-1a like hash, reduced to safe JS number
+    let hash = 0xCBF29CE484222325n; // offset
+    const prime = 0x100000001B3n;
+    for (let i = 0; i < cid.length; i++) {
+      hash ^= BigInt(cid.charCodeAt(i));
+      hash = (hash * prime) & 0xFFFFFFFFFFFFFFFFn;
+    }
+    const u64 = Number(hash & 0x1FFFFFFFFFFFFFn); // clamp to 53 bits
+    return u64 > 0 ? u64 : Math.abs(u64);
+  }
+
+  // Generate IPFS CID from current form and uploads, then derive landId
+  async function handleGenerateCid() {
+    try {
+      push({ variant: 'default', title: 'Generating CID', description: 'Uploading metadata to IPFS…' });
+      // Upload selected images and docs to IPFS as needed
+      let titleDeedHash: string | null = null;
+      let surveyReportHash: string | null = null;
+      const additional: string[] = [];
+      try {
+        if (uploadedDocs.titleDeed) {
+          const res = await api.uploadFileToIPFS(uploadedDocs.titleDeed as any);
+          titleDeedHash = res?.ipfsHash || null;
+        }
+        if (uploadedDocs.surveyReport) {
+          const res = await api.uploadFileToIPFS(uploadedDocs.surveyReport as any);
+          surveyReportHash = res?.ipfsHash || null;
+        }
+        for (const img of uploadedImages) {
+          const res = await api.uploadFileToIPFS(img as any);
+          if (res?.ipfsHash) additional.push(res.ipfsHash);
+        }
+      } catch (e) {
+        // Continue even if uploads partially fail
+      }
+
+      const images = Array.isArray(additional) ? additional.map((cid) => ({ cid })) : [];
+      const documents: Array<{ name: string; type: 'title-deed' | 'survey' | 'certificate' | 'inspection'; cid: string; }>
+        = [];
+      if (titleDeedHash) documents.push({ name: 'Title Deed', type: 'title-deed', cid: titleDeedHash });
+      if (surveyReportHash) documents.push({ name: 'Survey Report', type: 'survey', cid: surveyReportHash });
+
+      const metadata = {
+        title: formData.title,
+        size: formData.size,
+        price: formData.price,
+        location: formData.location,
+        description: formData.description,
+        landType: formData.landType,
+        zoning: formData.zoning,
+        utilities: formData.utilities,
+        accessibility: formData.accessibility,
+        nearbyAmenities: formData.nearbyAmenities,
+        seller: {
+          name: formData.sellerName,
+          phone: formData.sellerPhone,
+          email: formData.sellerEmail,
+        },
+        images,
+        documents,
+        timestamp: new Date().toISOString(),
+        status: 'pending',
+      };
+
+      const up = await api.uploadJSONToIPFS(metadata);
+      const cid = up?.ipfsHash;
+      if (!cid) throw new Error('Failed to upload metadata to IPFS');
+      const lid = deriveLandIdFromCid(cid);
+      setGeneratedCid(cid);
+      setGeneratedLandId(lid);
+      push({ variant: 'success', title: 'CID Generated', description: `${cid}` });
+    } catch (e: any) {
+      push({ variant: 'error', title: 'Failed to generate CID', description: e?.message || String(e) });
+    }
+  }
 
   useEffect(() => {
     async function loadParcels() {
@@ -206,14 +286,12 @@ export default function SellerDashboard() {
     setChainMsg(null);
     try {
       setChainBusy(true);
-      const idNum = Number(landIdInput);
-      if (!Number.isFinite(idNum)) throw new Error("Invalid landId");
       if (!chainSender) throw new Error("Sender address required");
-      if (!ipfsCidInput) throw new Error("ipfsCid required");
+      if (!generatedCid || !generatedLandId) throw new Error("Generate CID first to get landId");
       const txHash = await BIMA_CHAIN.createLandRecord(chainSender, {
-        landId: idNum,
-        ipfsCid: ipfsCidInput,
-        geoHash: geoHashInput || undefined,
+        landId: generatedLandId,
+        ipfsCid: generatedCid,
+        geoHash: undefined, // default zeroed geohash
       });
       setChainMsg(`Created on-chain. Tx: ${txHash}`);
       push({ variant: 'success', title: 'Create Land Record', description: `Included: ${txHash}` });
@@ -230,11 +308,10 @@ export default function SellerDashboard() {
     setChainMsg(null);
     try {
       setChainBusy(true);
-      const idNum = Number(landIdInput);
-      if (!Number.isFinite(idNum)) throw new Error("Invalid landId");
+      if (!generatedLandId) throw new Error("No Land ID. Generate CID or load listing first");
       if (!chainSender) throw new Error("Sender address required");
       if (!newOwnerInput) throw new Error("New owner address required");
-      const txHash = await BIMA_CHAIN.transferOwnership(chainSender, idNum, newOwnerInput);
+      const txHash = await BIMA_CHAIN.transferOwnership(chainSender, generatedLandId, newOwnerInput);
       setChainMsg(`Ownership transferred. Tx: ${txHash}`);
       push({ variant: 'success', title: 'Transfer Ownership', description: `Included: ${txHash}` });
     } catch (e: any) {
@@ -800,34 +877,6 @@ export default function SellerDashboard() {
                             statusConfig[listing.status].icon,
                             { className: "w-3 h-3" },
                           )}
-
-          {/* Create Tab: add small Substrate form */}
-          {activeTab === "create" && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="space-y-6"
-            >
-              <div className="p-6 rounded-xl bg-card/40 border border-border/50">
-                <h3 className="text-lg font-bold mb-4">On-chain Registry (Substrate)</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Sender Address (ss58)" value={chainSender} readOnly />
-                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Land ID (number)" value={landIdInput} onChange={(e)=>setLandIdInput(e.target.value)} />
-                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2" placeholder="IPFS CID (e.g., bafy...)" value={ipfsCidInput} onChange={(e)=>setIpfsCidInput(e.target.value)} />
-                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2" placeholder="GeoHash (0x.. 32 bytes, optional)" value={geoHashInput} onChange={(e)=>setGeoHashInput(e.target.value)} />
-                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2" placeholder="New Owner (ss58, for transfer)" value={newOwnerInput} onChange={(e)=>setNewOwnerInput(e.target.value)} />
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button onClick={handleCreateOnChain} disabled={chainBusy} className="rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm disabled:opacity-60">{chainBusy ? 'Submitting…' : 'Create Land Record'}</button>
-                  <button onClick={handleTransferOnChain} disabled={chainBusy} className="rounded-md bg-card border border-border/50 hover:border-primary/50 px-3 py-2 text-sm disabled:opacity-60">{chainBusy ? 'Submitting…' : 'Transfer Ownership'}</button>
-                </div>
-                {chainMsg && (
-                  <div className="mt-3 text-sm text-muted-foreground break-all">{chainMsg}</div>
-                )}
-              </div>
-            </motion.div>
-          )}
                           {statusConfig[listing.status].label}
                         </div>
                       </div>
@@ -1056,6 +1105,28 @@ export default function SellerDashboard() {
               className="space-y-8"
             >
               <h2 className="text-2xl font-bold">Create New Land Listing</h2>
+
+              {/* On-chain Registry (Substrate) */}
+              <div className="p-6 rounded-xl bg-card/40 border border-border/50">
+                <h3 className="text-lg font-bold mb-2">On-chain Registry (Substrate)</h3>
+                <p className="text-xs text-muted-foreground mb-4">1) Generate CID from your form and files. 2) Register on-chain. GeoHash is handled automatically.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Sender Address (ss58)" value={chainSender} readOnly />
+                  <div className="grid grid-cols-1 gap-2">
+                    <button onClick={handleGenerateCid} className="rounded-md bg-card border border-border/50 hover:border-primary/50 px-3 py-2 text-sm">Save & Generate CID</button>
+                  </div>
+                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2" placeholder="Generated Land ID" value={generatedLandId ?? ''} readOnly />
+                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2" placeholder="Generated IPFS CID" value={generatedCid ?? ''} readOnly />
+                  <input className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2" placeholder="New Owner (ss58, for transfer)" value={newOwnerInput} onChange={(e)=>setNewOwnerInput(e.target.value)} />
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button onClick={handleCreateOnChain} disabled={chainBusy || !generatedCid || !generatedLandId} className="rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm disabled:opacity-60">{chainBusy ? 'Submitting…' : 'Register On-chain'}</button>
+                  <button onClick={handleTransferOnChain} disabled={chainBusy || !generatedLandId} className="rounded-md bg-card border border-border/50 hover:border-primary/50 px-3 py-2 text-sm disabled:opacity-60">{chainBusy ? 'Submitting…' : 'Transfer Ownership'}</button>
+                </div>
+                {chainMsg && (
+                  <div className="mt-3 text-sm text-muted-foreground break-all">{chainMsg}</div>
+                )}
+              </div>
 
               <div className="max-w-4xl">
                 <div className="p-8 rounded-xl bg-card/40 backdrop-blur-sm border border-border/50">
