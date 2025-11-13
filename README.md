@@ -55,7 +55,7 @@ Tech Stack
 🧠 Languages & Frameworks
 
 
-🌐 Hedera Hashgraph & Web3
+🌐 polkadot & Web3
 
 
 🧰 Development Tools
