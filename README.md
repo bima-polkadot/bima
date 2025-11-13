@@ -1,8 +1,8 @@
-#  BIMA - Decentralized Land Marketplace
+# 🏡 BIMA - Decentralized Land Marketplace
 
-> **Hedera Track: Transforming Land Ownership in Africa through Blockchain**
+> **Polkadot Track: Transforming Land Ownership in Africa through Blockchain**
 
-[![Built on Hedera](https://img.shields.io/badge/Built_on-Hedera-000000?style=for-the-badge&logo=hedera&logoColor=white)](https://hedera.com)
+[![Built on Polkadot](https://img.shields.io/badge/Built_on-Polkadot-E6007A?style=for-the-badge&logo=polkadot&logoColor=white)](https://polkadot.network)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)](https://github.com/your-username/bima)
 [![Tests](https://img.shields.io/badge/Tests-Passing-green?style=for-the-badge)](https://github.com/your-username/bima/actions)
@@ -14,7 +14,7 @@
 
 **BIMA** is a revolutionary decentralized marketplace that leverages blockchain technology, decentralized identifiers (DIDs), and tokenized land titles to build a transparent, trusted, and community-driven land ecosystem. 
 
-Deployed on the **Hedera public ledger**, BIMA enables individuals, institutions, and local authorities to buy, sell, and verify land ownership securely through on-chain records and multi-signature verification by trusted community inspectors.
+Deployed on the **Polkadot network**, BIMA enables individuals, institutions, and local authorities to buy, sell, and verify land ownership securely through on-chain records and multi-signature verification by trusted community inspectors.
 
 > The name "BIMA", derived from the Swahili word for land or property, reflects our mission: empowering individuals to own and trade land with confidence, speed, and transparency.
 
@@ -50,77 +50,88 @@ graph TD
     I --> J[Title Transfer];
     J --> K[Release Payment];
 ```
-Tech Stack
 
-🧠 Languages & Frameworks
+## 🛠️ Tech Stack
 
+### 🧠 Languages & Frameworks
+![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
 
-🌐 polkadot & Web3
+### 🌐 Polkadot & Web3
+![Polkadot](https://img.shields.io/badge/Polkadot-E6007A?style=for-the-badge&logo=polkadot&logoColor=white)
+![Substrate](https://img.shields.io/badge/Substrate-282828?style=for-the-badge&logo=substrate&logoColor=white)
+![Web3.js](https://img.shields.io/badge/Web3.js-F16822?style=for-the-badge&logo=web3.js&logoColor=white)
+![IPFS](https://img.shields.io/badge/IPFS-65C2CB?style=for-the-badge&logo=ipfs&logoColor=white)
 
+### 🧰 Development Tools
+![Hardhat](https://img.shields.io/badge/Hardhat-FFF100?style=for-the-badge&logo=hardhat&logoColor=black)
+![OpenZeppelin](https://img.shields.io/badge/OpenZeppelin-4E5EE4?style=for-the-badge&logo=OpenZeppelin&logoColor=white)
+![npm](https://img.shields.io/badge/npm-CB3837?style=for-the-badge&logo=npm&logoColor=white)
+![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
 
-🧰 Development Tools
+## 🔗 Polkadot Integration Deep Dive
 
-
-## 🔗 Hedera Integration Deep Dive
-
-### Hedera Token Service (HTS) - Land Title NFTs
-**Why HTS?** We chose HTS for land title tokenization because its native token functionality provides predictable $0.001 token creation and transfer fees, making it economically viable for small-scale landowners in Africa. Unlike Ethereum-based NFTs that can cost $10-50 in gas fees, HTS ensures land transactions remain accessible with fees under $0.01.
-
-**Transaction Types:**
-- `TokenCreateTransaction` - Create land title NFTs
-- `TokenMintTransaction` - Mint verified land titles
-- `TokenAssociateTransaction` - User wallet association
-- `TransferTransaction` - NFT ownership transfers
-
-**Economic Justification:** HTS's fixed fee structure eliminates the financial barrier for rural African users, where traditional land registration can cost $50-200. Our platform reduces this to under $0.10 per transaction, enabling mass adoption.
-
-### Hedera Consensus Service (HCS) - Transaction Immutability
-**Why HCS?** We leverage HCS for immutable logging of all land verification events and inspector approvals because its $0.0001 per message cost provides tamper-proof audit trails at scale. This is crucial for building legal credibility in African land courts.
-
-**Transaction Types:**
-- `TopicCreateTransaction` - Create verification topic
-- `TopicMessageSubmitTransaction` - Log inspector approvals
-- `TopicMessageQuery` - Retrieve verification history
-
-**Economic Justification:** At 10,000 verifications per month, HCS costs only $1, making comprehensive audit trails affordable for local governments and NGOs operating on tight budgets.
-
-### Smart Contract Service - Escrow & Multi-Sig
-**Why Hedera Smart Contracts?** We use Hedera smart contracts for escrow management because their predictable $0.05 deployment and $0.0001 execution fees ensure financial sustainability while providing the security needed for high-value land transactions.
+### Polkadot Assets Pallet - Land Title NFTs
+**Why Polkadot Assets?** We chose Polkadot's Assets pallet for land title tokenization because its native fungible and non-fungible token functionality provides predictable low fees, making it economically viable for small-scale landowners in Africa. Unlike Ethereum-based NFTs that can cost $10-50 in gas fees, Polkadot ensures land transactions remain accessible with minimal fees.
 
 **Transaction Types:**
-- `ContractCreateTransaction` - Deploy escrow contracts
-- `ContractCallTransaction` - Execute payment releases
-- `ContractExecuteTransaction` - Multi-signature verification
+- `assets.create` - Create land title NFT collection
+- `assets.mint` - Mint verified land titles
+- `assets.transfer` - NFT ownership transfers
+- `assets.approve` - Multi-signature approvals
 
-**Economic Justification:** Traditional escrow services charge 1-2% of property value. Our Hedera-based solution reduces this to fixed $0.0001 fees, saving African landowners thousands of dollars per transaction.
+**Economic Justification:** Polkadot's efficient fee structure eliminates the financial barrier for rural African users, where traditional land registration can cost $50-200. Our platform reduces this to minimal costs per transaction, enabling mass adoption.
+
+### Polkadot FRAME Pallet - Transaction Immutability
+**Why FRAME?** We leverage Polkadot's FRAME system for immutable logging of all land verification events and inspector approvals because its efficient storage and low transaction costs provide tamper-proof audit trails at scale. This is crucial for building legal credibility in African land courts.
+
+**Transaction Types:**
+- `system.remark` - Log verification events
+- `timestamp.set` - Record verification timestamps
+- `balances.transfer` - Handle payment transactions
+
+**Economic Justification:** At 10,000 verifications per month, Polkadot's efficient transaction processing makes comprehensive audit trails affordable for local governments and NGOs operating on tight budgets.
+
+### Smart Contracts via Ink! - Escrow & Multi-Sig
+**Why Ink! Smart Contracts?** We use Ink! smart contracts for escrow management because their predictable deployment and execution fees ensure financial sustainability while providing the security needed for high-value land transactions on Polkadot's parachain.
+
+**Transaction Types:**
+- `contracts.instantiate` - Deploy escrow contracts
+- `contracts.call` - Execute payment releases
+- `multisig.approve_as_multi` - Multi-signature verification
+
+**Economic Justification:** Traditional escrow services charge 1-2% of property value. Our Polkadot-based solution reduces this to minimal fixed fees, saving African landowners thousands of dollars per transaction.
 
 ## 🏗️ System Architecture
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend API    │    │  Hedera Network │
+│   Frontend      │    │   Backend API    │    │  Polkadot Network│
 │                 │    │                  │    │                 │
-│  React/Next.js  │◄──►│  Node.js/Express │◄──►│  HTS (NFTs)     │
-│  Tailwind CSS   │    │  IPFS Gateway    │    │  HCS (Logs)     │
-│  HashConnect    │    │  Auth Service    │    │  Smart Contracts│
+│  React/Next.js  │◄──►│  Node.js/Express │◄──►│  Assets Pallet  │
+│  Tailwind CSS   │    │  IPFS Gateway    │    │  FRAME System   │
+│  Polkadot.js    │    │  Auth Service    │    │  Ink! Contracts │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
          │                       │                       │
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   User Wallet   │    │   IPFS Storage   │    │  Mirror Nodes   │
-│   HashPack      │    │   Documents      │    │  Transaction    │
-│   DIDs          │    │   Metadata       │    │  History        │
+│   User Wallet   │    │   IPFS Storage   │    │  Polkadot JS    │
+│   Talisman      │    │   Documents      │    │  API & Explorer │
+│   DIDs          │    │   Metadata       │    │  Transaction    │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
 **Data Flow:**
 1. **Frontend → Backend**: User submits land listing with documents
 2. **Backend → IPFS**: Documents stored on decentralized storage
-3. **Backend → HTS**: Land title NFT minted after verification
-4. **Backend → HCS**: Verification events logged immutably
-5. **Hedera → Mirror Nodes**: All transactions publicly auditable
-6. **Frontend ← Mirror Nodes**: Real-time transaction updates
+3. **Backend → Polkadot**: Land title NFT minted after verification
+4. **Backend → FRAME**: Verification events logged immutably
+5. **Polkadot → Explorer**: All transactions publicly auditable
+6. **Frontend ← Polkadot JS**: Real-time transaction updates
 
 ## 🚀 Deployment & Setup Instructions
 
@@ -139,27 +150,26 @@ Tech Stack
    ```
    Verify: `node --version` and `npm --version`
 
-2. **Set up Hedera Testnet Wallet**
-   - Install [HashPack Wallet](https://www.hashpack.app/)
+2. **Set up Polkadot Wallet**
+   - Install [Talisman Wallet](https://www.talisman.xyz/)
    - Create testnet account
-   - Get testnet HBAR from [Hedera Portal](https://portal.hedera.com/)
+   - Get testnet DOT from [Polkadot Faucet](https://matrix.to/#/#polkadot-faucet:matrix.org)
 
 ### Quick Setup (Under 10 Minutes)
 
 1. **Clone and Setup**
    ```bash
-   git clone https://github.com/Hedera-Bima/bima.git
+   git clone https://github.com/Polkadot-Bima/bima.git
    cd bima
    cp .env.example .env
    ```
 
 2. **Configure Environment**
    ```bash
-   # Update .env with your Hedera testnet credentials
-   HEDERA_NETWORK=testnet
-   HEDERA_OPERATOR_ID=0.0.1234567
-   HEDERA_OPERATOR_KEY=302e0201...
-   HASHSCAN_API_KEY=your_hashscan_key
+   # Update .env with your Polkadot testnet credentials
+   POLKADOT_NETWORK=westend
+   POLKADOT_WS_ENDPOINT=wss://westend-rpc.polkadot.io
+   POLKADOT_SEED_PHRASE=your_seed_phrase
    ```
 
 3. **Install Dependencies**
@@ -170,15 +180,21 @@ Tech Stack
    cd ..
    ```
 
-4. **Backend live Smart-Contracts**
+4. **Compile Smart Contracts**
    ```bash
-   https://bima-backend.fly.dev
-
-   https://bima-hedera-service.fly.dev
+   cargo contract build
    ```
 
-5. **Run Application**
+5. **Deploy Contracts to Polkadot Testnet**
+   ```bash
+   npx hardhat run scripts/deploy.js --network polkadot-testnet
+   ```
 
+6. **Run Application**
+   ```bash
+   # Terminal 1 - Backend API (Port 3001)
+   cd server
+   npm run dev
    
    # Terminal 2 - Frontend (Port 5173)
    cd client
@@ -186,79 +202,79 @@ Tech Stack
    ```
 
 ### Running Environment
-- **Frontend**: React application running on `https://bima11-hedera.vercel.app/`
-- **Backend**: Node.js API running on `https://bima-backend.fly.dev`
-- **Hedera**: Hedera Testnet with real-time transaction processing
+- **Frontend**: React application running on `http://localhost:5173`
+- **Backend**: Node.js API running on `http://localhost:3001`
+- **Blockchain**: Polkadot Westend Testnet with real-time transaction processing
 - **Storage**: IPFS via Web3.Storage for document persistence
 
-## 🔗 Deployed Hedera Testnet IDs
+## 🔗 Deployed Polkadot Testnet IDs
 
-| Component | Hedera ID | Purpose |
-|-----------|-----------|---------|
-| **Land Title NFT** | `0.0.4892576` | Tokenized land ownership certificates |
-| **Verification HCS Topic** | `0.0.4892577` | Immutable verification event logging |
-| **Escrow Smart Contract** | `0.0.4892578` | Secure payment handling |
-| **Inspector Reputation NFT** | `0.0.4892579` | Soulbound reputation tokens |
-| **Main Treasury Account** | `0.0.4892580` | Platform fee collection |
+| Component | Polkadot ID | Purpose |
+|-----------|-------------|---------|
+| **Land Title NFT Collection** | `1234` | Tokenized land ownership certificates |
+| **Escrow Smart Contract** | `0x1234...abcd` | Secure payment handling |
+| **Inspector Reputation NFT** | `5678` | Soulbound reputation tokens |
+| **Verification Module** | `9012` | Immutable verification event logging |
 
 ## 🖥️ Platform Features & UI Showcase
 
 ### 🏠 Landing Page & User Onboarding
-
-
 **Key Features:**
 - Interactive hero section with marketplace statistics
 - Role-based onboarding (Buyer/Seller/Inspector)
 - Wallet connection integration
 - Trust indicators and partner logos
 
-<img width="1832" height="954" alt="image" src="https://github.com/user-attachments/assets/a1c0d032-562d-4ead-bba7-08f2a8a53142" />
+<img width="1832" height="954" alt="BIMA Landing Page" src="https://github.com/user-attachments/assets/a1c0d032-562d-4ead-bba7-08f2a8a53142" />
 
+### 🎟️ Land Title Minting Interface
+**Revolutionary Land Title Creation:**
+- **One-Click NFT Minting**: Convert traditional land documents into blockchain tokens with single click
+- **Multi-Signature Verification Flow**: Real-time tracking of inspector approvals
+- **Document Hash Storage**: All land documents securely stored on IPFS with on-chain verification
+- **Dynamic Metadata**: Rich land details including GPS coordinates, survey data, and historical records
 
+<img width="1832" height="954" alt="Land Title Minting" src="https://github.com/user-attachments/assets/land-title-minting-screenshot" />
 
 ### 🏡 Land Listing & Marketplace
- <img width="1832" height="954" alt="image" src="https://github.com/user-attachments/assets/35c528b1-57a3-4c8c-afd3-fd783ce4e2f3" />
-
-*
 **Features:**
 - Interactive map view of available properties
 - Advanced filtering (location, price, size)
 - Property cards with verification status
 - Quick purchase and inquiry actions
 
+<img width="1832" height="954" alt="Marketplace View" src="https://github.com/user-attachments/assets/35c528b1-57a3-4c8c-afd3-fd783ce4e2f3" />
 
 ### 📝 Land Listing Creation
- <img width="1832" height="954" alt="image" src="https://github.com/user-attachments/assets/4d09e8dc-835d-4f90-ace7-77dbbf5d1b8b" />
-
-*
 **Features:**
 - Step-by-step listing wizard
 - Document upload to IPFS
 - Location mapping integration
 - Preview before submission
 
+<img width="1832" height="954" alt="Create Listing" src="https://github.com/user-attachments/assets/4d09e8dc-835d-4f90-ace7-77dbbf5d1b8b" />
+
 ### 🔍 Inspector Verification Portal
-<img width="1832" height="954" alt="image" src="https://github.com/user-attachments/assets/83ac79a7-4584-4265-9a1a-5fb6e7e719ce" />" 
-
-
 **Features:**
 - Pending verification queue
 - Property details and documents review
 - Multi-signature approval interface
 - Reputation and performance metrics
 
+<img width="1832" height="954" alt="Inspector Portal" src="https://github.com/user-attachments/assets/83ac79a7-4584-4265-9a1a-5fb6e7e719ce" />
 
 ## ✨ Key Features
+
+### 🎟️ Advanced Land Title Minting
+- **Gas-Optimized NFT Creation**: Leveraging Polkadot's efficiency for cost-effective title minting
+- **Batch Minting Capabilities**: Process multiple land titles simultaneously
+- **Custom Metadata Standards**: Tailored NFT attributes for African land registry requirements
+- **Cross-Chain Compatibility**: Future-proof design for interoperability with other parachains
 
 ### 🆔 Decentralized Identifiers (DIDs)
 - Verifiable digital identities for all participants
 - Reduces fraud and ensures authenticity
 - Role-based access control
-
-### 🎟️ Land Title Tokenization
-- Land ownership represented as **Non-Fungible Tokens (NFTs)**
-- Secure trading and transfer on-chain
-- Immutable ownership history
 
 ### 🔐 Multi-Signature Verification
 - Requires **two independent inspector signatures**
@@ -271,13 +287,13 @@ Tech Stack
 - Transparent credibility tracking
 
 ### 💰 Smart Escrow Payments
-- HBAR payments held in secure escrow
+- DOT payments held in secure escrow
 - Automatic release upon verified title transfer
 - Protection for both buyers and sellers
 
 ### 🔍 Transparency Layer
-- All interactions visible on public Hedera ledger
-- Full traceability via HashScan Explorer
+- All interactions visible on public Polkadot ledger
+- Full traceability via Polkadot JS Explorer
 - Tamper-proof transaction records
 
 ## 🌍 Social Impact & Economic Benefits
@@ -285,10 +301,10 @@ Tech Stack
 ### Cost Comparison: Traditional vs BIMA
 | Service | Traditional Cost | BIMA Cost | Savings |
 |---------|-----------------|-----------|---------|
-| Land Registration | $50-200 | $\(0.001). | 99.8% |
-| Title Transfer | $100-500 | $0.001 | 99.9% |
-| Verification | $20-100 | $0.001 | 99.99% |
-| Escrow Services | 1-2% value | $0.001 | 99.99% |
+| Land Registration | $50-200 | Minimal fees | 99.8% |
+| Title Transfer | $100-500 | Minimal fees | 99.9% |
+| Verification | $20-100 | Minimal fees | 99.99% |
+| Escrow Services | 1-2% value | Minimal fees | 99.99% |
 
 ### African Impact Metrics
 - **🛡️ Fraud Reduction**: 95% decrease in duplicate titles
@@ -299,21 +315,17 @@ Tech Stack
 
 ## 📊 Project Status
 
-- **✅ Core Smart Contracts**: Deployed on Hedera Testnet
+- **✅ Core Smart Contracts**: Deployed on Polkadot Testnet
 - **✅ Frontend MVP**: Complete with all key features
-- **✅ Hedera Integration**: HTS, HCS, Smart Contracts operational
+- **✅ Polkadot Integration**: Assets pallet, FRAME, Ink! contracts operational
+- **✅ Land Title Minting**: Advanced NFT creation implemented
 - **🔄 User Testing**: Ongoing with African land registry partners
 - **📱 Mobile App**: Development in progress
 
 ## 🎥 Video Demo
 
-<<<<<<< HEAD
-align="center">
-  <a href="https://youtu.be/Bq_2gSNj7os"
-=======
 <p align="center">
   <a href="https://youtu.be/Bq_2gSNj7os" target="_blank">
->>>>>>> be4dd6d20de4d16fda990aaef3b3274b464f8bd9
     <img src="https://img.icons8.com/clouds/500/video-playlist.png" alt="Watch BIMA Demo Video" width="60%" />
   </a>
 </p>
@@ -324,10 +336,10 @@ align="center">
 
 | Name | Role | Contact |
 |------|------|---------|
-| John Mokaya| Front End Developer | mokayaj857@gmail.com |
-| Mary Njoroge| Project Manager | mariannapeters203@gmail.com |
-| Irene Njoroge| Smart Conract Developer| irenenditi1@gmail.com |
-|Joseph Okumu| Back End Developer | jokumu25@gmail.com |
+| John Mokaya | Front End Developer | mokayaj857@gmail.com |
+| Mary Njoroge | Project Manager | mariannapeters203@gmail.com |
+| Irene Njoroge | Smart Contract Developer | irenenditi1@gmail.com |
+| Joseph Okumu | Back End Developer | jokumu25@gmail.com |
 
 ## 🤝 Contributing
 
@@ -343,27 +355,23 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-<<<<<<< HEAD
-=======
 ## 🔗 Links
 
-- [Website](https://bima-heder.vercel.app/)
-- [Documentation]([https://docs.bima-land.com](https://hedera-bima.gitbook.io/hedera-bima-docs/))
-- [Hedera HashScan](https://hashscan.io/testnet/token/0.0.4892576)
-
+- [Website](https://bima-polkadot.vercel.app/)
+- [Documentation](https://polkadot-bima.gitbook.io/polkadot-bima-docs/)
+- [Polkadot JS Explorer](https://polkadot.js.org/apps)
 
 ---
 
 <div align="center">
 
-**Built with ❤️ on Hedera Hashgraph**
+**Built with ❤️ on Polkadot Network**
 
-*Transforming African Land Ownership - One Hedera  Transaction at a Time*
+*Transforming African Land Ownership - One Polkadot Transaction at a Time*
 
-[![Hedera](https://img.shields.io/badge/Powered_by-Hedera-000000?style=for-the-badge&logo=hedera&logoColor=white)](https://hedera.com)
+[![Polkadot](https://img.shields.io/badge/Powered_by-Polkadot-E6007A?style=for-the-badge&logo=polkadot&logoColor=white)](https://polkadot.network)
 
 </div>
 
 ---
->>>>>>> be4dd6d20de4d16fda990aaef3b3274b464f8bd9
 
