@@ -183,18 +183,21 @@ graph TD
 4. **Compile Smart Contracts**
    ```bash
    cargo contract build
-   ```
 
-5. **Deploy Contracts to Polkadot Testnet**
+   ```
+5. **Backend live Smart-Contracts**
+   ```bash
+   https://bima-backend.fly.dev
+
+   https://bima-hedera-service.fly.dev
+
+6. **Deploy Contracts to Polkadot Testnet**
    ```bash
    npx hardhat run scripts/deploy.js --network polkadot-testnet
    ```
 
-6. **Run Application**
+7. **Run Application**
    ```bash
-   # Terminal 1 - Backend API (Port 3001)
-   cd server
-   npm run dev
    
    # Terminal 2 - Frontend (Port 5173)
    cd client
