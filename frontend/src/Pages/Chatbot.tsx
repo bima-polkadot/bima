@@ -304,7 +304,7 @@ const StunningChatbot = () => {
                   {message.sender === 'user' ? (
                     <div className="w-full h-full bg-white rounded-2xl overflow-hidden">
                       <img 
-                        src={bot3} 
+                        src={bot1} 
                         alt="User"
                         className="w-full h-full object-cover"
                       />
@@ -312,7 +312,7 @@ const StunningChatbot = () => {
                   ) : (
                     <div className="w-full h-full bg-black rounded-2xl overflow-hidden flex items-center justify-center">
                       <img 
-                        src={bot1} 
+                        src={bot3} 
                         alt="Bot"
                         className="w-full h-full object-cover opacity-70"
                       />
