@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, X, Sparkles, Shield, TrendingUp, Code } from 'lucide-react';
+import { MessageSquare, Send, X, Shield } from 'lucide-react';
 import bot from '../assets/bot.png';
 import bot1 from '../assets/bot1.png';
 import bot3 from '../assets/bot3.png';
@@ -100,11 +100,6 @@ const StunningChatbot = () => {
     }
   };
 
-  const quickActions = [
-    { icon: <Sparkles className="w-4 h-4" />, text: "AI Features", gradient: "from-purple-500 via-pink-500 to-red-500" },
-    { icon: <Code className="w-4 h-4" />, text: "Code Help", gradient: "from-blue-500 via-cyan-500 to-teal-500" },
-    { icon: <TrendingUp className="w-4 h-4" />, text: "Analytics", gradient: "from-green-500 via-emerald-500 to-teal-500" },
-  ];
 
   return (
     <>
@@ -267,24 +262,6 @@ const StunningChatbot = () => {
             </div>
           </div>
           
-          {/* Quick Actions */}
-          {messages.length === 1 && (
-            <div className="p-5 bg-gradient-to-b from-purple-50/50 to-transparent backdrop-blur-sm">
-              <p className="text-xs font-semibold text-purple-900 mb-3 uppercase tracking-wide">Quick Actions</p>
-              <div className="flex flex-wrap gap-2">
-                {quickActions.map((action, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setInputMessage(action.text)}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r ${action.gradient} text-white text-sm font-semibold shadow-lg hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 active:scale-95 transition-all duration-300`}
-                  >
-                    {action.icon}
-                    <span>{action.text}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
           
           {/* Chat Messages */}
           <div className="h-[420px] overflow-y-auto p-6 bg-gradient-to-b from-white/95 to-purple-50/95 backdrop-blur-xl">
