@@ -40,32 +40,107 @@ const StunningChatbot = () => {
     }
   };
 
-  const fetchBotReply = async (userText: string): Promise<string> => {
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: 'You are BIMA Assistant, a helpful assistant for a land marketplace. Be concise and friendly.' },
-            { role: 'user', content: userText }
-          ]
-        })
-      });
-      if (!res.ok) {
-        let details: any = undefined;
-        try {
-          details = await res.json();
-        } catch {}
-        console.error('Chat backend error payload:', details || (await res.text()));
-        throw new Error('Network response was not ok');
+  const containsPhrase = (text: string, phrase: string): boolean => {
+    return text.toLowerCase().includes(phrase.toLowerCase());
+  };
+
+  const parseQueryIntent = (query: string) => {
+    const intentPatterns = {
+      'land_purchase': ['buy land', 'purchase land', 'how to buy', 'land price', 'acquire land'],
+      'wallet_connection': ['connect wallet', 'wallet connection', 'polkadot wallet', 'how to connect'],
+      'land_listing': ['sell land', 'list land', 'how to sell', 'create listing', 'list my land', 'how do i list', 'how to list'],
+      'verification': ['verify land', 'land verification', 'inspector', 'trusted inspector'],
+      'marketplace_navigation': ['how to use', 'navigate', 'find land', 'search land'],
+      'smart_contracts': ['smart contract', 'escrow', 'blockchain', 'nft'],
+      'platform_info': ['what is bima', 'how it works', 'about platform'],
+      'general_help': ['help', 'support', 'assistance']
+    };
+
+    for (const [intent, patterns] of Object.entries(intentPatterns)) {
+      if (patterns.some(pattern => containsPhrase(query, pattern))) {
+        return intent;
       }
-      const data = await res.json();
-      return data.reply || 'Sorry, I could not generate a response.';
-    } catch (err) {
-      console.error('Chat error:', err);
-      return 'Sorry, I had trouble reaching the AI service. Please try again.';
     }
+    return 'general_help';
+  };
+
+  const getBimaResponses = () => {
+    return {
+      greetings: [
+        "Hello! I'm the BIMA AI Assistant. I can help you navigate our decentralized land marketplace and answer questions about buying, selling, and verifying land on the blockchain.",
+        "Hi there! Welcome to BIMA. I'm here to help you with blockchain-secured land transactions and marketplace navigation."
+      ],
+      
+      intents: {
+        land_purchase: {
+          responses: [
+            "To purchase land on BIMA:\n\n1. Connect your Polkadot wallet\n2. Browse available listings in the Marketplace\n3. Select a property and review details\n4. Ensure the land is verified by trusted inspectors\n5. Complete the purchase through our smart contract escrow system\n\nAll transactions are secured on the Polkadot blockchain!"
+          ]
+        },
+        
+        wallet_connection: {
+          responses: [
+            "To connect your wallet to BIMA:\n\n1. Install a Polkadot-compatible wallet (Polkadot.js extension recommended)\n2. Click the wallet icon in the top navigation\n3. Select your preferred wallet\n4. Authorize the connection\n\nYour wallet enables secure transactions and land ownership verification on our platform."
+          ]
+        },
+        
+        land_listing: {
+          responses: [
+            "To list your land for sale on BIMA:\n\n1. Navigate to 'Sell Land' page\n2. Connect your Polkadot wallet\n3. Upload property documents and photos\n4. Set your asking price\n5. Submit for community verification\n6. Once verified, your listing goes live!\n\nOur blockchain system ensures transparent and fraud-proof listings."
+          ]
+        },
+        
+        verification: {
+          responses: [
+            "BIMA's verification system works through:\n\n1. Trusted community inspectors review all listings\n2. Multi-signature consensus validates property details\n3. Blockchain records create immutable proof\n4. NFT land titles eliminate fraud\n\nOnly verified properties appear in our marketplace, ensuring buyer confidence."
+          ]
+        },
+        
+        marketplace_navigation: {
+          responses: [
+            "Navigating BIMA is easy:\n\n• **Marketplace**: Browse all verified land listings\n• **Sell Land**: List your property for sale\n• **Inspectors**: View trusted community verifiers\n• **How It Works**: Learn about our process\n\nUse filters to find land by location, price, or property type!"
+          ]
+        },
+        
+        smart_contracts: {
+          responses: [
+            "BIMA uses smart contracts for:\n\n• **Automated Escrow**: Funds held securely until transfer\n• **NFT Land Titles**: Immutable ownership proof\n• **Multi-sig Verification**: Community consensus\n• **Instant Settlement**: No waiting for paperwork\n\nAll powered by Polkadot's secure blockchain infrastructure."
+          ]
+        },
+        
+        platform_info: {
+          responses: [
+            "BIMA is a decentralized land marketplace that:\n\n✓ Eliminates land fraud through blockchain verification\n✓ Reduces transaction time from months to minutes\n✓ Uses community-verified trust system\n✓ Provides global access to land markets\n✓ Operates on carbon-negative Polkadot network\n\nWe're revolutionizing real estate with Web3 technology!"
+          ]
+        },
+        
+        general_help: {
+          responses: [
+            "I can help you with:\n\n• Buying and selling land on BIMA\n• Connecting your Polkadot wallet\n• Understanding our verification process\n• Navigating the marketplace\n• Learning about smart contracts\n\nWhat specific question do you have about our platform?"
+          ]
+        }
+      }
+    };
+  };
+
+  const fetchBotReply = async (userText: string): Promise<string> => {
+    const responses = getBimaResponses();
+    const intent = parseQueryIntent(userText);
+    
+    // Check for greeting patterns
+    const greetingPatterns = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'];
+    if (greetingPatterns.some(pattern => containsPhrase(userText, pattern))) {
+      return responses.greetings[Math.floor(Math.random() * responses.greetings.length)];
+    }
+    
+    // Return intent-based response
+    const intentResponses = responses.intents[intent as keyof typeof responses.intents];
+    if (intentResponses && intentResponses.responses.length > 0) {
+      return intentResponses.responses[Math.floor(Math.random() * intentResponses.responses.length)];
+    }
+    
+    // Fallback response
+    return "I'm here to help with BIMA platform questions! You can ask me about buying land, selling property, wallet connections, or how our verification system works. What would you like to know?";
   };
 
   const handleSubmit = async () => {
