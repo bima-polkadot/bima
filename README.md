@@ -8,7 +8,7 @@
 [![Tests](https://img.shields.io/badge/Tests-Passing-green?style=for-the-badge)](https://github.com/your-username/bima/actions)
 
 ## 📋 Project Documentation
-- **📊 Pitch Deck**: [View Our Presentation](https://docs.google.com/presentation/d/10I7Pw_kjgIZsvBHhTH_MazTGst457HE0/edit?usp=sharing&ouid=103572532230510575942&rtpof=true&sd=true)
+- **📊 Pitch Deck**: [View Our Presentation](https://drive.google.com/file/d/16nKwOr_uoXWRNLbOG6oISDfWea1ZPTVs/view?usp=sharing)
 
 ## 🌍 Overview
 
