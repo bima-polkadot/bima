@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, X, Sparkles, Zap, Shield, TrendingUp, Code } from 'lucide-react';
+import { MessageSquare, Send, X, Sparkles, Shield, TrendingUp, Code } from 'lucide-react';
 import bot from '../assets/bot.png';
 import bot1 from '../assets/bot1.png';
 import bot3 from '../assets/bot3.png';
@@ -15,7 +15,7 @@ const StunningChatbot = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     scrollToBottom();
