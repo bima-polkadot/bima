@@ -246,11 +246,7 @@ const StunningChatbot = () => {
                   <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-lg animate-pulse"></div>
                 </div>
                 <div>
-                  <h2 className="font-bold text-lg text-shadow-glow">BIMA Assistant</h2>
-                  <div className="flex items-center gap-2 text-xs text-purple-100">
-                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-                    <span>Online • Powered by BIMA</span>
-                  </div>
+                  <h2 className="font-bold text-lg text-shadow-glow">BIMA AI Assistant</h2>
                 </div>
               </div>
               <button 
