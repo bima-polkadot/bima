@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, X, Sparkles, Zap, Shield, TrendingUp, Code } from 'lucide-react';
+import { MessageSquare, Send, X, Shield } from 'lucide-react';
 import bot from '../assets/bot.png';
 import bot1 from '../assets/bot1.png';
 import bot3 from '../assets/bot3.png';
@@ -15,7 +15,7 @@ const StunningChatbot = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     scrollToBottom();
@@ -40,32 +40,107 @@ const StunningChatbot = () => {
     }
   };
 
-  const fetchBotReply = async (userText: string): Promise<string> => {
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: 'You are BIMA Assistant, a helpful assistant for a land marketplace. Be concise and friendly.' },
-            { role: 'user', content: userText }
-          ]
-        })
-      });
-      if (!res.ok) {
-        let details: any = undefined;
-        try {
-          details = await res.json();
-        } catch {}
-        console.error('Chat backend error payload:', details || (await res.text()));
-        throw new Error('Network response was not ok');
+  const containsPhrase = (text: string, phrase: string): boolean => {
+    return text.toLowerCase().includes(phrase.toLowerCase());
+  };
+
+  const parseQueryIntent = (query: string) => {
+    const intentPatterns = {
+      'land_purchase': ['buy land', 'purchase land', 'how to buy', 'land price', 'acquire land'],
+      'wallet_connection': ['connect wallet', 'wallet connection', 'polkadot wallet', 'how to connect'],
+      'land_listing': ['sell land', 'list land', 'how to sell', 'create listing', 'list my land', 'how do i list', 'how to list'],
+      'verification': ['verify land', 'land verification', 'inspector', 'trusted inspector'],
+      'marketplace_navigation': ['how to use', 'navigate', 'find land', 'search land'],
+      'smart_contracts': ['smart contract', 'escrow', 'blockchain', 'nft'],
+      'platform_info': ['what is bima', 'how it works', 'about platform'],
+      'general_help': ['help', 'support', 'assistance']
+    };
+
+    for (const [intent, patterns] of Object.entries(intentPatterns)) {
+      if (patterns.some(pattern => containsPhrase(query, pattern))) {
+        return intent;
       }
-      const data = await res.json();
-      return data.reply || 'Sorry, I could not generate a response.';
-    } catch (err) {
-      console.error('Chat error:', err);
-      return 'Sorry, I had trouble reaching the AI service. Please try again.';
     }
+    return 'general_help';
+  };
+
+  const getBimaResponses = () => {
+    return {
+      greetings: [
+        "Hello! I'm the BIMA AI Assistant. I can help you navigate our decentralized land marketplace and answer questions about buying, selling, and verifying land on the blockchain.",
+        "Hi there! Welcome to BIMA. I'm here to help you with blockchain-secured land transactions and marketplace navigation."
+      ],
+      
+      intents: {
+        land_purchase: {
+          responses: [
+            "To purchase land on BIMA:\n\n1. Connect your Polkadot wallet\n2. Browse available listings in the Marketplace\n3. Select a property and review details\n4. Ensure the land is verified by trusted inspectors\n5. Complete the purchase through our smart contract escrow system\n\nAll transactions are secured on the Polkadot blockchain!"
+          ]
+        },
+        
+        wallet_connection: {
+          responses: [
+            "To connect your wallet to BIMA:\n\n1. Install a Polkadot-compatible wallet (Polkadot.js extension recommended)\n2. Click the wallet icon in the top navigation\n3. Select your preferred wallet\n4. Authorize the connection\n\nYour wallet enables secure transactions and land ownership verification on our platform."
+          ]
+        },
+        
+        land_listing: {
+          responses: [
+            "To list your land for sale on BIMA:\n\n1. Navigate to 'Sell Land' page\n2. Connect your Polkadot wallet\n3. Upload property documents and photos\n4. Set your asking price\n5. Submit for community verification\n6. Once verified, your listing goes live!\n\nOur blockchain system ensures transparent and fraud-proof listings."
+          ]
+        },
+        
+        verification: {
+          responses: [
+            "BIMA's verification system works through:\n\n1. Trusted community inspectors review all listings\n2. Multi-signature consensus validates property details\n3. Blockchain records create immutable proof\n4. NFT land titles eliminate fraud\n\nOnly verified properties appear in our marketplace, ensuring buyer confidence."
+          ]
+        },
+        
+        marketplace_navigation: {
+          responses: [
+            "Navigating BIMA is easy:\n\n• **Marketplace**: Browse all verified land listings\n• **Sell Land**: List your property for sale\n• **Inspectors**: View trusted community verifiers\n• **How It Works**: Learn about our process\n\nUse filters to find land by location, price, or property type!"
+          ]
+        },
+        
+        smart_contracts: {
+          responses: [
+            "BIMA uses smart contracts for:\n\n• **Automated Escrow**: Funds held securely until transfer\n• **NFT Land Titles**: Immutable ownership proof\n• **Multi-sig Verification**: Community consensus\n• **Instant Settlement**: No waiting for paperwork\n\nAll powered by Polkadot's secure blockchain infrastructure."
+          ]
+        },
+        
+        platform_info: {
+          responses: [
+            "BIMA is a decentralized land marketplace that:\n\n✓ Eliminates land fraud through blockchain verification\n✓ Reduces transaction time from months to minutes\n✓ Uses community-verified trust system\n✓ Provides global access to land markets\n✓ Operates on carbon-negative Polkadot network\n\nWe're revolutionizing real estate with Web3 technology!"
+          ]
+        },
+        
+        general_help: {
+          responses: [
+            "I can help you with:\n\n• Buying and selling land on BIMA\n• Connecting your Polkadot wallet\n• Understanding our verification process\n• Navigating the marketplace\n• Learning about smart contracts\n\nWhat specific question do you have about our platform?"
+          ]
+        }
+      }
+    };
+  };
+
+  const fetchBotReply = async (userText: string): Promise<string> => {
+    const responses = getBimaResponses();
+    const intent = parseQueryIntent(userText);
+    
+    // Check for greeting patterns
+    const greetingPatterns = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'];
+    if (greetingPatterns.some(pattern => containsPhrase(userText, pattern))) {
+      return responses.greetings[Math.floor(Math.random() * responses.greetings.length)];
+    }
+    
+    // Return intent-based response
+    const intentResponses = responses.intents[intent as keyof typeof responses.intents];
+    if (intentResponses && intentResponses.responses.length > 0) {
+      return intentResponses.responses[Math.floor(Math.random() * intentResponses.responses.length)];
+    }
+    
+    // Fallback response
+    return "I'm here to help with BIMA platform questions! You can ask me about buying land, selling property, wallet connections, or how our verification system works. What would you like to know?";
   };
 
   const handleSubmit = async () => {
@@ -100,11 +175,6 @@ const StunningChatbot = () => {
     }
   };
 
-  const quickActions = [
-    { icon: <Sparkles className="w-4 h-4" />, text: "AI Features", gradient: "from-purple-500 via-pink-500 to-red-500" },
-    { icon: <Code className="w-4 h-4" />, text: "Code Help", gradient: "from-blue-500 via-cyan-500 to-teal-500" },
-    { icon: <TrendingUp className="w-4 h-4" />, text: "Analytics", gradient: "from-green-500 via-emerald-500 to-teal-500" },
-  ];
 
   return (
     <>
@@ -251,11 +321,7 @@ const StunningChatbot = () => {
                   <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-lg animate-pulse"></div>
                 </div>
                 <div>
-                  <h2 className="font-bold text-lg text-shadow-glow">BIMA Assistant</h2>
-                  <div className="flex items-center gap-2 text-xs text-purple-100">
-                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-                    <span>Online • Powered by BIMA</span>
-                  </div>
+                  <h2 className="font-bold text-lg text-shadow-glow">BIMA AI Assistant</h2>
                 </div>
               </div>
               <button 
@@ -267,24 +333,6 @@ const StunningChatbot = () => {
             </div>
           </div>
           
-          {/* Quick Actions */}
-          {messages.length === 1 && (
-            <div className="p-5 bg-gradient-to-b from-purple-50/50 to-transparent backdrop-blur-sm">
-              <p className="text-xs font-semibold text-purple-900 mb-3 uppercase tracking-wide">Quick Actions</p>
-              <div className="flex flex-wrap gap-2">
-                {quickActions.map((action, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setInputMessage(action.text)}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r ${action.gradient} text-white text-sm font-semibold shadow-lg hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 active:scale-95 transition-all duration-300`}
-                  >
-                    {action.icon}
-                    <span>{action.text}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
           
           {/* Chat Messages */}
           <div className="h-[420px] overflow-y-auto p-6 bg-gradient-to-b from-white/95 to-purple-50/95 backdrop-blur-xl">
@@ -304,7 +352,7 @@ const StunningChatbot = () => {
                   {message.sender === 'user' ? (
                     <div className="w-full h-full bg-white rounded-2xl overflow-hidden">
                       <img 
-                        src={bot3} 
+                        src={bot1} 
                         alt="User"
                         className="w-full h-full object-cover"
                       />
@@ -312,7 +360,7 @@ const StunningChatbot = () => {
                   ) : (
                     <div className="w-full h-full bg-black rounded-2xl overflow-hidden flex items-center justify-center">
                       <img 
-                        src={bot1} 
+                        src={bot3} 
                         alt="Bot"
                         className="w-full h-full object-cover opacity-70"
                       />
