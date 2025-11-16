@@ -1,8 +1,0 @@
-/home/junia-loves-juniour/Bima/smartcontract/escrowcontract/target/ink/release/deps/derive_syn_parse-b9ddbe0d58a9147f.d: /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive-syn-parse-0.2.0/src/lib.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive-syn-parse-0.2.0/src/error_macros.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive-syn-parse-0.2.0/src/fields.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive-syn-parse-0.2.0/src/variants.rs
-
-/home/junia-loves-juniour/Bima/smartcontract/escrowcontract/target/ink/release/deps/libderive_syn_parse-b9ddbe0d58a9147f.so: /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive-syn-parse-0.2.0/src/lib.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive-syn-parse-0.2.0/src/error_macros.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive-syn-parse-0.2.0/src/fields.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive-syn-parse-0.2.0/src/variants.rs
-
-/home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive-syn-parse-0.2.0/src/lib.rs:
-/home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive-syn-parse-0.2.0/src/error_macros.rs:
-/home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive-syn-parse-0.2.0/src/fields.rs:
-/home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive-syn-parse-0.2.0/src/variants.rs:
