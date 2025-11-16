@@ -4,9 +4,10 @@
 mod escrowcontract1_v5 {
     use ink::prelude::string::String;
     use ink::storage::Mapping;
+    use ink::prelude::vec::Vec;
+    use scale::Encode; // for value.encode()
 
-    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Copy, Clone)]
-    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
+    #[derive(scale::Encode, scale::Decode)]
     pub enum EscrowStatus {
         Created,
         Funded,
@@ -17,16 +18,14 @@ mod escrowcontract1_v5 {
         Disputed,
     }
 
-    #[derive(scale::Encode, scale::Decode, Debug, Clone, Copy)]
-    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
+    #[derive(scale::Encode, scale::Decode)]
     pub struct FeeConfig {
         pub platform_fee_bps: u16,
         pub inspector_fee_bps: u16,
         pub platform_account: AccountId,
     }
 
-    #[derive(scale::Encode, scale::Decode, Debug, Clone)]
-    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
+    #[derive(scale::Encode, scale::Decode)]
     pub struct EscrowAgreement {
         pub land_id: String,
         pub nft_id: Option<String>,
@@ -35,8 +34,7 @@ mod escrowcontract1_v5 {
         pub completion_deadline: u32,
     }
 
-    #[derive(scale::Encode, scale::Decode, Debug, Clone, scale_info::TypeInfo)]
-    #[cfg_attr(feature = "std", derive(ink::storage::traits::StorageLayout))]
+    #[derive(scale::Encode, scale::Decode)]
     pub struct EscrowDetails {
         pub buyer: AccountId,
         pub seller: AccountId,
@@ -50,7 +48,7 @@ mod escrowcontract1_v5 {
         pub dispute_reason: Option<String>,
     }
 
-    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Copy, Clone, scale_info::TypeInfo)]
+    #[derive(scale::Encode, scale::Decode)]
     pub enum EscrowError {
         Unauthorized,
         InvalidAmount,
@@ -93,23 +91,26 @@ mod escrowcontract1_v5 {
 
     #[ink(storage)]
     pub struct BimaEscrow {
-        escrows: Mapping<u64, EscrowDetails>,
+        escrows: Mapping<u64, Vec<u8>>,
         next_escrow_id: u64,
         owner: AccountId,
-        default_fees: FeeConfig,
+        default_platform_fee_bps: u16,
+        default_inspector_fee_bps: u16,
+        default_platform_account: AccountId,
     }
 
     impl BimaEscrow {
         #[ink(constructor)]
         pub fn new(platform_account: AccountId) -> Self {
             let caller = Self::env().caller();
-            let default_fees = FeeConfig {
-                platform_fee_bps: 250,
-                inspector_fee_bps: 150,
-                platform_account,
-            };
-
-            Self { escrows: Mapping::default(), next_escrow_id: 1, owner: caller, default_fees }
+            Self {
+                escrows: Mapping::default(),
+                next_escrow_id: 1,
+                owner: caller,
+                default_platform_fee_bps: 250,
+                default_inspector_fee_bps: 150,
+                default_platform_account: platform_account,
+            }
         }
 
         #[ink(message)]
@@ -126,12 +127,16 @@ mod escrowcontract1_v5 {
                 amount: 0,
                 status: EscrowStatus::Created,
                 agreement,
-                fee_config: self.default_fees,
+                fee_config: FeeConfig {
+                    platform_fee_bps: self.default_platform_fee_bps,
+                    inspector_fee_bps: self.default_inspector_fee_bps,
+                    platform_account: self.default_platform_account,
+                },
                 created_at: current_block,
                 funded: false,
                 dispute_reason: None,
             };
-            self.escrows.insert(escrow_id, &escrow);
+            self.escrows.insert(escrow_id, &escrow.encode());
             self.next_escrow_id = self.next_escrow_id.checked_add(1).ok_or(EscrowError::InvalidState)?;
             Self::env().emit_event(EscrowCreated { escrow_id, buyer: caller, seller });
             Ok(escrow_id)
@@ -142,11 +147,15 @@ mod escrowcontract1_v5 {
             let caller = Self::env().caller();
             let transferred = Self::env().transferred_value();
             if transferred == 0 { return Err(EscrowError::InvalidAmount); }
-            let mut escrow = self.escrows.get(escrow_id).ok_or(EscrowError::EscrowNotFound)?;
+            let mut escrow: EscrowDetails = self
+                .escrows
+                .get(escrow_id)
+                .and_then(|bytes| scale::Decode::decode(&mut &bytes[..]).ok())
+                .ok_or(EscrowError::EscrowNotFound)?;
             if caller != escrow.buyer { return Err(EscrowError::Unauthorized); }
             if escrow.funded { return Err(EscrowError::AlreadyFunded); }
             escrow.amount = transferred; escrow.funded = true; escrow.status = EscrowStatus::Funded;
-            self.escrows.insert(escrow_id, &escrow);
+            self.escrows.insert(escrow_id, &escrow.encode());
             Self::env().emit_event(EscrowFunded { escrow_id, buyer: caller, amount: transferred });
             Ok(())
         }
@@ -154,44 +163,67 @@ mod escrowcontract1_v5 {
         #[ink(message)]
         pub fn approve_transaction(&mut self, escrow_id: u64) -> Result<()> {
             let caller = Self::env().caller();
-            let mut escrow = self.escrows.get(escrow_id).ok_or(EscrowError::EscrowNotFound)?;
+            let mut escrow: EscrowDetails = self
+                .escrows
+                .get(escrow_id)
+                .and_then(|bytes| scale::Decode::decode(&mut &bytes[..]).ok())
+                .ok_or(EscrowError::EscrowNotFound)?;
             if escrow.inspector != Some(caller) { return Err(EscrowError::InvalidInspector); }
-            if escrow.status != EscrowStatus::Funded { return Err(EscrowError::InvalidState); }
-            escrow.status = EscrowStatus::Approved; self.escrows.insert(escrow_id, &escrow);
+            match escrow.status {
+                EscrowStatus::Funded => {}
+                _ => return Err(EscrowError::InvalidState),
+            }
+            escrow.status = EscrowStatus::Approved; self.escrows.insert(escrow_id, &escrow.encode());
             Ok(())
         }
 
         #[ink(message)]
         pub fn release_funds(&mut self, escrow_id: u64) -> Result<()> {
-            let escrow = self.escrows.get(escrow_id).ok_or(EscrowError::EscrowNotFound)?;
-            if escrow.status != EscrowStatus::Approved { return Err(EscrowError::InvalidState); }
+            let escrow: EscrowDetails = self
+                .escrows
+                .get(escrow_id)
+                .and_then(|bytes| scale::Decode::decode(&mut &bytes[..]).ok())
+                .ok_or(EscrowError::EscrowNotFound)?;
+            match escrow.status {
+                EscrowStatus::Approved => {}
+                _ => return Err(EscrowError::InvalidState),
+            }
             let (seller_amount, platform_fee, inspector_fee) = self.calculate_payouts(&escrow);
             self.transfer_funds(escrow.seller, seller_amount)?;
             self.transfer_funds(escrow.fee_config.platform_account, platform_fee)?;
             if let Some(inspector) = escrow.inspector { self.transfer_funds(inspector, inspector_fee)?; }
-            let mut updated_escrow = escrow; updated_escrow.status = EscrowStatus::Completed; self.escrows.insert(escrow_id, &updated_escrow);
+            let mut updated_escrow = escrow; updated_escrow.status = EscrowStatus::Completed; self.escrows.insert(escrow_id, &updated_escrow.encode());
             Self::env().emit_event(EscrowCompleted { escrow_id, seller: updated_escrow.seller, amount: seller_amount });
             Ok(())
         }
 
         #[ink(message)]
         pub fn refund_buyer(&mut self, escrow_id: u64) -> Result<()> {
-            let escrow = self.escrows.get(escrow_id).ok_or(EscrowError::EscrowNotFound)?;
+            let escrow: EscrowDetails = self
+                .escrows
+                .get(escrow_id)
+                .and_then(|bytes| scale::Decode::decode(&mut &bytes[..]).ok())
+                .ok_or(EscrowError::EscrowNotFound)?;
             let current_block = Self::env().block_number();
-            let can_refund = escrow.status == EscrowStatus::Funded && current_block > escrow.agreement.inspection_deadline;
+            let can_refund = matches!(escrow.status, EscrowStatus::Funded)
+                && current_block > escrow.agreement.inspection_deadline;
             if !can_refund { return Err(EscrowError::InvalidState); }
             self.transfer_funds(escrow.buyer, escrow.amount)?;
-            let mut updated_escrow = escrow; updated_escrow.status = EscrowStatus::Refunded; self.escrows.insert(escrow_id, &updated_escrow);
+            let mut updated_escrow = escrow; updated_escrow.status = EscrowStatus::Refunded; self.escrows.insert(escrow_id, &updated_escrow.encode());
             Ok(())
         }
 
         #[ink(message)]
         pub fn cancel_escrow(&mut self, escrow_id: u64) -> Result<()> {
             let caller = Self::env().caller();
-            let mut escrow = self.escrows.get(escrow_id).ok_or(EscrowError::EscrowNotFound)?;
+            let mut escrow: EscrowDetails = self
+                .escrows
+                .get(escrow_id)
+                .and_then(|bytes| scale::Decode::decode(&mut &bytes[..]).ok())
+                .ok_or(EscrowError::EscrowNotFound)?;
             if caller != escrow.buyer && caller != escrow.seller { return Err(EscrowError::Unauthorized); }
             if escrow.funded { return Err(EscrowError::InvalidState); }
-            escrow.status = EscrowStatus::Cancelled; self.escrows.insert(escrow_id, &escrow);
+            escrow.status = EscrowStatus::Cancelled; self.escrows.insert(escrow_id, &escrow.encode());
             Ok(())
         }
 
@@ -210,7 +242,9 @@ mod escrowcontract1_v5 {
 
         #[ink(message)]
         pub fn get_escrow_details(&self, escrow_id: u64) -> Option<EscrowDetails> {
-            self.escrows.get(escrow_id)
+            self.escrows
+                .get(escrow_id)
+                .and_then(|bytes| scale::Decode::decode(&mut &bytes[..]).ok())
         }
 
         #[ink(message)]
