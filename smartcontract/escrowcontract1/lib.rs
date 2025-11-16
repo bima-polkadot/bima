@@ -4,9 +4,10 @@
 #[ink::contract]
 mod bima_escrow {
     use ink::prelude::string::String;
+    use ink::prelude::vec::Vec;
     // use ink::prelude::vec::Vec; // not used
     use ink::storage::Mapping;
-    use ink::storage::traits::StorageLayout;
+    // StorageLayout will be derived via path-qualified derive when `std` is enabled
 
     /// Escrow status tracking
     #[derive(
@@ -18,7 +19,6 @@ mod bima_escrow {
         Copy,
         Clone,
         scale_info::TypeInfo,
-        StorageLayout,
     )]
     pub enum EscrowStatus {
         Created,
@@ -28,17 +28,11 @@ mod bima_escrow {
         Refunded,
         Cancelled,
         Disputed,
-    }
 
     /// Fee configuration for revenue sharing
     #[derive(
-        scale::Encode,
-        scale::Decode,
-        Debug,
-        Clone,
         Copy,
         scale_info::TypeInfo,
-        StorageLayout,
     )]
     pub struct FeeConfig {
         pub platform_fee_bps: u16,
@@ -53,7 +47,6 @@ mod bima_escrow {
         Debug,
         Clone,
         scale_info::TypeInfo,
-        StorageLayout,
     )]
     pub struct EscrowAgreement {
         pub land_id: String,
@@ -70,7 +63,6 @@ mod bima_escrow {
         Debug,
         Clone,
         scale_info::TypeInfo,
-        StorageLayout,
     )]
     pub struct EscrowDetails {
         pub buyer: AccountId,
@@ -138,7 +130,8 @@ mod bima_escrow {
 
     #[ink(storage)]
     pub struct BimaEscrow {
-        escrows: Mapping<u64, EscrowDetails>,
+        // Store SCALE-encoded bytes to avoid StorageLayout requirements
+        escrows: Mapping<u64, Vec<u8>>,
         next_escrow_id: u64,
         owner: AccountId,
         default_fees: FeeConfig,
@@ -190,7 +183,7 @@ mod bima_escrow {
                 dispute_reason: None,
             };
 
-            self.escrows.insert(escrow_id, &escrow);
+            self.escrows.insert(escrow_id, &escrow.encode());
             self.next_escrow_id = self.next_escrow_id.checked_add(1)
                 .ok_or(EscrowError::InvalidState)?;
 
@@ -212,7 +205,10 @@ mod bima_escrow {
                 return Err(EscrowError::InvalidAmount);
             }
 
-            let mut escrow = self.escrows.get(escrow_id)
+            let mut escrow: EscrowDetails = self
+                .escrows
+                .get(escrow_id)
+                .and_then(|bytes| scale::Decode::decode(&mut &bytes[..]).ok())
                 .ok_or(EscrowError::EscrowNotFound)?;
 
             if caller != escrow.buyer {
@@ -253,14 +249,17 @@ mod bima_escrow {
             }
 
             escrow.status = EscrowStatus::Approved;
-            self.escrows.insert(escrow_id, &escrow);
+            self.escrows.insert(escrow_id, &escrow.encode());
 
             Ok(())
         }
 
         #[ink(message)]
         pub fn release_funds(&mut self, escrow_id: u64) -> Result<()> {
-            let escrow = self.escrows.get(escrow_id)
+            let escrow: EscrowDetails = self
+                .escrows
+                .get(escrow_id)
+                .and_then(|bytes| scale::Decode::decode(&mut &bytes[..]).ok())
                 .ok_or(EscrowError::EscrowNotFound)?;
 
             if escrow.status != EscrowStatus::Approved {
@@ -278,7 +277,7 @@ mod bima_escrow {
 
             let mut updated_escrow = escrow;
             updated_escrow.status = EscrowStatus::Completed;
-            self.escrows.insert(escrow_id, &updated_escrow);
+            self.escrows.insert(escrow_id, &updated_escrow.encode());
 
             Self::env().emit_event(EscrowCompleted {
                 escrow_id,
@@ -333,10 +332,20 @@ mod bima_escrow {
 
         // Helper functions
         fn calculate_payouts(&self, escrow: &EscrowDetails) -> (Balance, Balance, Balance) {
-            let platform_fee = (escrow.amount * escrow.fee_config.platform_fee_bps as u128) / 10000;
-            let inspector_fee = (escrow.amount * escrow.fee_config.inspector_fee_bps as u128) / 10000;
-            let seller_amount = escrow.amount - platform_fee - inspector_fee;
-            
+            let denom: u128 = 10_000;
+            let platform_fee = escrow
+                .amount
+                .saturating_mul(escrow.fee_config.platform_fee_bps as u128)
+                / denom;
+            let inspector_fee = escrow
+                .amount
+                .saturating_mul(escrow.fee_config.inspector_fee_bps as u128)
+                / denom;
+            let seller_amount = escrow
+                .amount
+                .saturating_sub(platform_fee)
+                .saturating_sub(inspector_fee);
+
             (seller_amount, platform_fee, inspector_fee)
         }
 
@@ -350,7 +359,9 @@ mod bima_escrow {
         // Query functions
         #[ink(message)]
         pub fn get_escrow_details(&self, escrow_id: u64) -> Option<EscrowDetails> {
-            self.escrows.get(escrow_id)
+            self.escrows
+                .get(escrow_id)
+                .and_then(|bytes| scale::Decode::decode(&mut &bytes[..]).ok())
         }
 
         #[ink(message)]
