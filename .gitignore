@@ -36,3 +36,4 @@ backend/.env
 backend/.env.*
 .nodes/
 .nodes/
+.nodes/
