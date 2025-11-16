@@ -6,7 +6,7 @@ mod bima_escrow {
     use ink::prelude::string::String;
     // use ink::prelude::vec::Vec; // not used
     use ink::storage::Mapping;
-    use ink::storage::traits::{PackedLayout, SpreadLayout, StorageLayout};
+    use ink::storage::traits::StorageLayout;
 
     /// Escrow status tracking
     #[derive(
@@ -18,7 +18,7 @@ mod bima_escrow {
         Copy,
         Clone,
         scale_info::TypeInfo,
-        ink::storage::traits::StorageLayout
+        StorageLayout,
     )]
     pub enum EscrowStatus {
         Created,
@@ -39,8 +39,6 @@ mod bima_escrow {
         Copy,
         scale_info::TypeInfo,
         StorageLayout,
-        SpreadLayout,
-        PackedLayout,
     )]
     pub struct FeeConfig {
         pub platform_fee_bps: u16,
@@ -56,8 +54,6 @@ mod bima_escrow {
         Clone,
         scale_info::TypeInfo,
         StorageLayout,
-        SpreadLayout,
-        PackedLayout,
     )]
     pub struct EscrowAgreement {
         pub land_id: String,
@@ -75,8 +71,6 @@ mod bima_escrow {
         Clone,
         scale_info::TypeInfo,
         StorageLayout,
-        SpreadLayout,
-        PackedLayout,
     )]
     pub struct EscrowDetails {
         pub buyer: AccountId,
