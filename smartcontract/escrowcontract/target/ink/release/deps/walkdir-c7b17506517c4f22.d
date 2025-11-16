@@ -1,0 +1,10 @@
+/home/junia-loves-juniour/Bima/smartcontract/escrowcontract/target/ink/release/deps/walkdir-c7b17506517c4f22.d: /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/lib.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/dent.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/error.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/util.rs
+
+/home/junia-loves-juniour/Bima/smartcontract/escrowcontract/target/ink/release/deps/libwalkdir-c7b17506517c4f22.rlib: /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/lib.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/dent.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/error.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/util.rs
+
+/home/junia-loves-juniour/Bima/smartcontract/escrowcontract/target/ink/release/deps/libwalkdir-c7b17506517c4f22.rmeta: /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/lib.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/dent.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/error.rs /home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/util.rs
+
+/home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/lib.rs:
+/home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/dent.rs:
+/home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/error.rs:
+/home/junia-loves-juniour/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/walkdir-2.5.0/src/util.rs:

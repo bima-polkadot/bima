@@ -1,0 +1,1 @@
+/home/junia-loves-juniour/Bima/smartcontract/escrowcontract/target/ink/release/metadata-gen: /home/junia-loves-juniour/Bima/smartcontract/escrowcontract/lib.rs /tmp/cargo-contract_1ZWMWU/.ink/metadata_gen/main.rs
