@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@polkadot/api": "^14.3.1",
+    "@polkadot/api-contract": "^16.5.2",
     "@polkadot/extension-dapp": "^0.48.2",
     "@polkadot/util": "^13.5.7",
     "@reown/appkit": "1.7.16",
