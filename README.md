@@ -331,7 +331,7 @@ graph TD
 
 <<<<<<< HEAD
 align="center">
-  <a href="https://youtu.be/veQ7uCloS7Q?"
+  <a href="https://youtu.be/veQ7uCloS7Q"
 =======
 <p align="center">
   <a href="https://youtu.be/target="_blank">
