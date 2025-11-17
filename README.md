@@ -10,7 +10,7 @@
 ## 📋 Project Documentation
 - **📊 Pitch Deck**: [View Our Presentation](https://drive.google.com/file/d/16nKwOr_uoXWRNLbOG6oISDfWea1ZPTVs/view?usp=sharing)
 
-- **📊 Live Project **: https://bima-polkadot.vercel.app/).
+- 📊 **Live Project** : https://bima-polkadot.vercel.app/
 
 ## 🌍 Overview
 
