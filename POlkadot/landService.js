@@ -1,6 +1,6 @@
 import fs from "fs";
 
-const VERIFICATION_LOG = "./verification-log.json";
+const VERIFICATION_LOG = process.env.VERIFICATION_LOG || "./verification-log.json";
 
 export function loadVerificationLog() {
   try {
@@ -43,5 +43,59 @@ export function applyApproval(entry, role, name) {
     entry.status = "pending";
   }
 }
+
+// Factory to create isolated landService instances using a specific log path
+export function createLandService(logPath) {
+  function loadVerificationLog() {
+    try {
+      if (!fs.existsSync(logPath)) return [];
+      const content = fs.readFileSync(logPath, "utf8");
+      if (!content.trim()) return [];
+      return JSON.parse(content);
+    } catch {
+      return [];
+    }
+  }
+
+  function saveVerificationLog(data) {
+    fs.writeFileSync(logPath, JSON.stringify(data, null, 2));
+  }
+
+  function getLandEntryById(log, landId) {
+    return log.find((e) => Number(e.landId) === Number(landId));
+  }
+
+  function ensureEntryDefaults(entry) {
+    if (!Array.isArray(entry.approvals)) entry.approvals = [];
+    if (!entry.verificationHistory) entry.verificationHistory = [];
+    if (typeof entry.verified !== "boolean") entry.verified = false;
+    if (!entry.status) entry.status = "pending";
+  }
+
+  function applyApproval(entry, role, name) {
+    ensureEntryDefaults(entry);
+    if (!entry.approvals.includes(role)) {
+      entry.approvals.push(role);
+      entry.verificationHistory.push({ role, name, date: new Date().toISOString() });
+    }
+    const hasChief = entry.approvals.includes("Chief");
+    const hasSurveyor = entry.approvals.includes("Surveyor");
+    if (hasChief && hasSurveyor) {
+      entry.verified = true;
+      entry.status = "approved";
+    } else {
+      entry.status = "pending";
+    }
+  }
+
+  return {
+    loadVerificationLog,
+    saveVerificationLog,
+    getLandEntryById,
+    ensureEntryDefaults,
+    applyApproval,
+  };
+}
+
 
 

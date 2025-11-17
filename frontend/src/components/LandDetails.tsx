@@ -22,7 +22,7 @@ import {
   Zap
 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { api } from '../lib/api';
+import { api, API_BASE_URL } from '../lib/api';
 
 // Route-driven component: landId is read from URL params
 
@@ -144,7 +144,7 @@ const LandDetails: React.FC = () => {
         // For on-chain listings, fetch metadata from IPFS
         if (match.metadataHash) {
           try {
-            const m = await fetch(`https://gateway.pinata.cloud/ipfs/${match.metadataHash}?cb=${Date.now()}`);
+            const m = await fetch(`${API_BASE_URL}/ipfs/json/${match.metadataHash}`);
             if (m.ok) meta = await m.json();
           } catch {}
         }
@@ -347,13 +347,7 @@ const LandDetails: React.FC = () => {
         return;
       }
       setIsMinting(true);
-      const metadata = {
-        metadataHash: property.metadataHash,
-        size: property.area,
-        price: property.price,
-        location: property.location
-      };
-      await api.mintLandNFT(TOKEN_ID, metadata);
+      await api.mintLandNFT(Number(property.id), property.metadataHash);
       alert('NFT minted successfully!');
     } catch (e: any) {
       alert(e?.message || 'Failed to mint NFT');

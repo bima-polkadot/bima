@@ -39,10 +39,10 @@ export const api = {
     return response.data;
   },
 
-  async mintLandNFT(tokenId: string, metadata: any) {
+  async mintLandNFT(landId: number, metadataHash: string) {
     const response = await axios.post(`${API_BASE_URL}/nft/mint`, {
-      tokenId,
-      metadata,
+      landId,
+      metadataHash,
     });
     return response.data;
   },

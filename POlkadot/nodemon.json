@@ -1,0 +1,16 @@
+{
+  "ignore": [
+    "verification-log.json",
+    "listings-log.json",
+    "uploads/**",
+    "*.log"
+  ],
+  "ext": "js,mjs,json",
+  "watch": [
+    "./*.js",
+    "./**/*.js",
+    "./*.mjs",
+    "./**/*.mjs",
+    "./package.json"
+  ]
+}

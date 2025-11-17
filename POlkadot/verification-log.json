@@ -149,5 +149,164 @@
     "verified": false,
     "status": "pending",
     "submittedAt": "2025-11-12T00:34:01.458Z"
+  },
+  {
+    "landId": 1763375579577,
+    "size": "100",
+    "price": "10",
+    "location": "Nairobi",
+    "metadataHash": "QmCID_A",
+    "approvals": [
+      "Chief",
+      "Surveyor"
+    ],
+    "verified": true,
+    "status": "sold",
+    "submittedAt": "2025-11-17T10:32:59.577Z",
+    "verificationHistory": [
+      {
+        "role": "Chief",
+        "name": "Alice",
+        "date": "2025-11-17T10:32:59.597Z"
+      },
+      {
+        "role": "Surveyor",
+        "name": "Bob",
+        "date": "2025-11-17T10:32:59.612Z"
+      }
+    ],
+    "nftMinted": true,
+    "nftSerial": 1,
+    "soldAt": "2025-11-17T10:32:59.632Z",
+    "buyerId": "buyer1"
+  },
+  {
+    "landId": 1763375579637,
+    "metadataHash": "QmCID_B",
+    "approvals": [],
+    "verified": false,
+    "status": "pending",
+    "submittedAt": "2025-11-17T10:32:59.637Z"
+  },
+  {
+    "landId": 1763375579650,
+    "metadataHash": "X1",
+    "approvals": [],
+    "verified": false,
+    "status": "pending",
+    "submittedAt": "2025-11-17T10:32:59.650Z"
+  },
+  {
+    "landId": 1763375579657,
+    "metadataHash": "X2",
+    "approvals": [
+      "Chief",
+      "Surveyor"
+    ],
+    "verified": true,
+    "status": "minted",
+    "submittedAt": "2025-11-17T10:32:59.657Z",
+    "verificationHistory": [
+      {
+        "role": "Chief",
+        "name": "A",
+        "date": "2025-11-17T10:32:59.664Z"
+      },
+      {
+        "role": "Surveyor",
+        "name": "B",
+        "date": "2025-11-17T10:32:59.671Z"
+      }
+    ],
+    "nftMinted": true,
+    "nftSerial": 1
+  },
+  {
+    "landId": 1763377179887,
+    "size": "100",
+    "price": "10",
+    "location": "Nairobi",
+    "metadataHash": "QmCID123",
+    "approvals": [],
+    "verified": false,
+    "status": "pending",
+    "submittedAt": "2025-11-17T10:59:39.887Z"
+  },
+  {
+    "landId": 1763377324977,
+    "size": "100",
+    "price": "10",
+    "location": "Nairobi",
+    "metadataHash": "QmCID123",
+    "approvals": [],
+    "verified": false,
+    "status": "pending",
+    "submittedAt": "2025-11-17T11:02:04.977Z"
+  },
+  {
+    "landId": 1763377334332,
+    "size": "100",
+    "price": "10",
+    "location": "Nairobi",
+    "metadataHash": "QmCID123",
+    "approvals": [],
+    "verified": false,
+    "status": "pending",
+    "submittedAt": "2025-11-17T11:02:14.332Z"
+  },
+  {
+    "landId": 1763377530910,
+    "size": "100",
+    "price": "10",
+    "location": "Nairobi",
+    "metadataHash": "QmCID123",
+    "approvals": [],
+    "verified": false,
+    "status": "pending",
+    "submittedAt": "2025-11-17T11:05:30.910Z"
+  },
+  {
+    "landId": 1763377545535,
+    "size": "100",
+    "price": "10",
+    "location": "Nairobi",
+    "metadataHash": "QmCID123",
+    "approvals": [],
+    "verified": false,
+    "status": "pending",
+    "submittedAt": "2025-11-17T11:05:45.535Z"
+  },
+  {
+    "landId": 1763377719396,
+    "size": "100",
+    "price": "10",
+    "location": "Nairobi",
+    "metadataHash": "QmCID123",
+    "approvals": [],
+    "verified": false,
+    "status": "pending",
+    "submittedAt": "2025-11-17T11:08:39.396Z"
+  },
+  {
+    "landId": 1763377917904,
+    "size": "100",
+    "price": "10",
+    "location": "Nairobi",
+    "metadataHash": "QmCID123",
+    "approvals": [],
+    "verified": false,
+    "status": "pending",
+    "submittedAt": "2025-11-17T11:11:57.904Z"
+  },
+  {
+    "landId": 1763378031838,
+    "size": "100",
+    "price": "10",
+    "location": "Nairobi",
+    "metadataHash": "QmCID123",
+    "approvals": [],
+    "verified": false,
+    "status": "pending",
+    "submittedAt": "2025-11-17T11:13:51.838Z"
   }
 ]

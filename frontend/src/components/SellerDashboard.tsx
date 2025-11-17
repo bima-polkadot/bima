@@ -17,7 +17,7 @@ import {
   Image as ImageIcon,
   X,
 } from "lucide-react";
-import { api } from "../lib/api";
+import { api, API_BASE_URL } from "../lib/api";
 import { BIMA_CHAIN } from "@/chain";
 import { useWalletStore } from "@/state/wallet";
 import { useToast } from "@/components/toast/ToastProvider";
@@ -109,6 +109,7 @@ export default function SellerDashboard() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMintingId, setIsMintingId] = useState<string | null>(null);
+  const [isVerifyingId, setIsVerifyingId] = useState<string | null>(null);
   const [chainListings, setChainListings] = useState<LandListing[]>([]);
   const [editOpen, setEditOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<any>(null);
@@ -189,46 +190,59 @@ export default function SellerDashboard() {
 
   // Note: CID generation is now performed inside handleSubmit; hidden from the seller.
 
-  useEffect(() => {
-    async function loadParcels() {
-      try {
-        const res = await api.getParcels();
-        const items = Array.isArray(res?.items) ? res.items : [];
-        const mapped: LandListing[] = items.map((p: any) => ({
-          id: String(p.landId),
-          title: p.location || "Land Parcel",
-          location: p.location || "Unknown",
-          area: p.size || "",
-          price: (p.price ?? "").toString(),
-          status: (p.status === "minted"
-            ? "verified"
-            : p.status === "pending"
-              ? "pending-verification"
-              : "listed") as any,
-          createdDate: new Date(p.submittedAt || Date.now()).toISOString(),
-          verificationProgress: p.status === "pending" ? 50 : 100,
-          inspectorsAssigned: p.approvals?.length ?? 0,
-          requiredInspectors: 2,
-          viewCount: 0,
-          inquiries: 0,
-          documents: [],
-          images: 0,
-          metadataHash: p.metadataHash,
-        }));
-        setChainListings(mapped);
-      } catch (e) {
-        setChainListings([]);
-      }
+  async function fetchParcels() {
+    try {
+      const res = await api.getParcels();
+      const items = Array.isArray(res?.items) ? res.items : [];
+      const mapped: LandListing[] = items.map((p: any) => ({
+        id: String(p.landId),
+        title: p.location || "Land Parcel",
+        location: p.location || "Unknown",
+        area: p.size || "",
+        price: (p.price ?? "").toString(),
+        status: (p.status === "minted"
+          ? "verified"
+          : p.status === "pending"
+            ? "pending-verification"
+            : "listed") as any,
+        createdDate: new Date(p.submittedAt || Date.now()).toISOString(),
+        verificationProgress: p.status === "pending" ? 50 : 100,
+        inspectorsAssigned: p.approvals?.length ?? 0,
+        requiredInspectors: 2,
+        viewCount: 0,
+        inquiries: 0,
+        documents: [],
+        images: 0,
+        metadataHash: p.metadataHash,
+      }));
+      setChainListings(mapped);
+    } catch (e) {
+      setChainListings([]);
     }
-    loadParcels();
+  }
+
+  useEffect(() => {
+    fetchParcels();
   }, []);
+
+  async function verifyWithRole(listing: LandListing, role: 'Chief' | 'Surveyor') {
+    try {
+      setIsVerifyingId(listing.id);
+      const name = role === 'Chief' ? 'Alice' : 'Bob';
+      await api.verifyLand({ landId: Number(listing.id), role, name });
+      await fetchParcels();
+      push({ variant: 'success', title: `${role} approval recorded`, description: `Land ${listing.id}` });
+    } catch (e: any) {
+      push({ variant: 'error', title: 'Verification failed', description: e?.message || String(e) });
+    } finally {
+      setIsVerifyingId(null);
+    }
+  }
 
   const openEdit = async (listing: any) => {
     try {
       if (!listing?.metadataHash) return;
-      const r = await fetch(
-        `https://gateway.pinata.cloud/ipfs/${listing.metadataHash}?cb=${Date.now()}`,
-      );
+      const r = await fetch(`${API_BASE_URL}/ipfs/json/${listing.metadataHash}`);
       const meta = r.ok ? await r.json() : {};
       setEditTarget(listing);
       setEditMeta(meta);
@@ -378,7 +392,6 @@ export default function SellerDashboard() {
     setUploadedDocs((prev) => ({ ...prev, [docType]: null }));
   };
 
-  const TOKEN_ID = "0.0.7158415";
   const handleMint = async (
     listing: LandListing & { metadataHash?: string },
   ) => {
@@ -391,13 +404,7 @@ export default function SellerDashboard() {
         return;
       }
       setIsMintingId(listing.id);
-      const metadata = {
-        metadataHash: listing.metadataHash,
-        size: listing.area,
-        price: listing.price,
-        location: listing.location,
-      };
-      await api.mintLandNFT(TOKEN_ID, metadata);
+      await api.mintLandNFT(Number(listing.id), listing.metadataHash);
       alert("NFT minted successfully!");
     } catch (e: any) {
       alert(e?.message || "Failed to mint NFT");
@@ -833,6 +840,26 @@ export default function SellerDashboard() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Verification buttons for pending listings */}
+                    {listing.status === "pending-verification" && (
+                      <div className="mb-4 flex gap-2 items-center">
+                        <button
+                          onClick={() => verifyWithRole(listing, 'Chief')}
+                          disabled={isVerifyingId === listing.id}
+                          className="px-3 py-1 rounded-lg border border-amber-500 text-amber-600 hover:bg-amber-500/10 text-sm"
+                        >
+                          {isVerifyingId === listing.id ? 'Verifying...' : 'Chief approve'}
+                        </button>
+                        <button
+                          onClick={() => verifyWithRole(listing, 'Surveyor')}
+                          disabled={isVerifyingId === listing.id}
+                          className="px-3 py-1 rounded-lg border border-indigo-500 text-indigo-600 hover:bg-indigo-500/10 text-sm"
+                        >
+                          {isVerifyingId === listing.id ? 'Verifying...' : 'Surveyor approve'}
+                        </button>
+                      </div>
+                    )}
 
                     {/* Mint button for verified listings */}
                     {listing.status === "verified" && (
