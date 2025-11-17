@@ -8,7 +8,9 @@
 [![Tests](https://img.shields.io/badge/Tests-Passing-green?style=for-the-badge)](https://github.com/your-username/bima/actions)
 
 ## 📋 Project Documentation
-- **📊 Pitch Deck**: [View Our Presentation](https://drive.google.com/file/d/16nKwOr_uoXWRNLbOG6oISDfWea1ZPTVs/view?usp=sharing)
+- **📊 Pitch Deck**: [View Our Presentation](https://docs.google.com/presentation/d/1cGslZ-suI-Kgur_XwWNqFPYfhM8tAo6ANXRfOSw60us/edit?usp=sharing)
+
+- 📊 **Live Project** : https://bima-polkadot.vercel.app/
 
 ## 🌍 Overview
 
@@ -325,6 +327,20 @@ graph TD
 - **🔄 User Testing**: Ongoing with African land registry partners
 - **📱 Mobile App**: Development in progress
 
+## 🎥 Video Demo
+
+<<<<<<< HEAD
+align="center">
+  <a href="https://youtu.be/veQ7uCloS7Q"
+=======
+<p align="center">
+  <a href="https://youtu.be/target="_blank">
+>>>>>>>QMmFdKspfB_vw6-B
+    <img src="https://img.icons8.com/clouds/500/video-playlist.png" alt="Watch BIMA Demo Video" width="60%" />
+  </a>
+</p>
+
+📽️ **Click the image above to watch the full platform demo**
 
 ## 👨‍💻 Team
 
