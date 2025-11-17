@@ -11,6 +11,7 @@
 - **📊 Pitch Deck**: [View Our Presentation](https://docs.google.com/presentation/d/1cGslZ-suI-Kgur_XwWNqFPYfhM8tAo6ANXRfOSw60us/edit?usp=sharing)
 
 - 📊 **Live Project** : https://bima-polkadot.vercel.app/
+- 📊 **Project Whitepaper** : https://app.gitbook.com/invite/Re8U2LJlijqo242e16Eq/FQNutGDFOT8FpslNIAHr
 
 ## 🌍 Overview
 
