@@ -875,7 +875,7 @@ export default function SellerDashboard() {
                         </button>
                         {listing.metadataHash && (
                           <a
-                            href={`https://gateway.pinata.cloud/ipfs/${listing.metadataHash}`}
+                            href={`${API_BASE_URL}/ipfs/json/${listing.metadataHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="px-3 py-1 rounded-lg border border-blue-500 text-blue-600 hover:bg-blue-500/10 text-sm"

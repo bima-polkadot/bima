@@ -222,13 +222,13 @@ const LandDetails: React.FC = () => {
   }, [landId]);
 
   // Transform backend/IPFS images or use fallback
-  const images: PropertyImage[] = property?.images?.length > 0 
+    const images: PropertyImage[] = property?.images?.length > 0 
     ? property.images.map((img: any, index: number) => {
         const cid = typeof img === 'string' ? img : (img?.cid || img?.ipfsHash || img?.hash || img?.image);
         const url = img?.path
           ? `https://bima-backend.fly.dev${img.path}`
           : cid
-            ? `https://gateway.pinata.cloud/ipfs/${cid}`
+            ? `${API_BASE_URL}/ipfs/raw/${cid}`
             : (img?.url || `https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&h=600&fit=crop`);
         return {
           id: index.toString(),
@@ -704,7 +704,7 @@ const LandDetails: React.FC = () => {
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <a
-                                    href={doc.cid ? `https://gateway.pinata.cloud/ipfs/${doc.cid}` : '#'}
+                                    href={doc.cid ? `${API_BASE_URL}/ipfs/raw/${doc.cid}` : '#'}
                                     target={doc.cid ? '_blank' : undefined}
                                     rel="noreferrer"
                                     className="p-2 rounded-lg bg-card/50 hover:bg-card text-muted-foreground hover:text-foreground transition-colors"
@@ -712,7 +712,7 @@ const LandDetails: React.FC = () => {
                                     <Eye className="w-4 h-4" />
                                   </a>
                                   <a
-                                    href={doc.cid ? `https://gateway.pinata.cloud/ipfs/${doc.cid}?download=1` : '#'}
+                                    href={doc.cid ? `${API_BASE_URL}/ipfs/raw/${doc.cid}?download=1` : '#'}
                                     target={doc.cid ? '_blank' : undefined}
                                     rel="noreferrer"
                                     className="p-2 rounded-lg bg-card/50 hover:bg-card text-muted-foreground hover:text-foreground transition-colors"
@@ -932,9 +932,9 @@ const LandDetails: React.FC = () => {
                   {property.metadataHash && (
                     <div className="mt-4 p-3 rounded-lg border border-border/50">
                       <div className="text-xs text-muted-foreground mb-1">IPFS Metadata</div>
-                      <a
+                        <a
                         className="text-xs font-mono underline text-blue-500 break-all"
-                        href={`https://gateway.pinata.cloud/ipfs/${property.metadataHash}`}
+                        href={`${API_BASE_URL}/ipfs/json/${property.metadataHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >

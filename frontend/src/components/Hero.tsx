@@ -1,7 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { api, BACKEND_API_URL } from "../lib/api";
+import { api, BACKEND_API_URL, API_BASE_URL } from "../lib/api";
 import {
   MapPin,
   Shield,
@@ -613,35 +613,27 @@ export default function Hero() {
         onchainListings = await Promise.all(
           items.map(async (p: any) => {
             let imageUrl: string | undefined;
-            if (p.metadataHash) {
-              try {
-                const r = await fetch(
-                  `https://gateway.pinata.cloud/ipfs/${p.metadataHash}`,
-                );
-                if (r.ok) {
-                  const j = await r.json();
-                  let first =
-                    Array.isArray(j?.images) && j.images.length > 0
-                      ? j.images[0]
-                      : null;
-                  if (
-                    !first &&
-                    j?.documents &&
-                    Array.isArray(j.documents.additional) &&
-                    j.documents.additional.length > 0
-                  ) {
-                    first = j.documents.additional[0];
+              if (p.metadataHash) {
+                try {
+                  const r = await fetch(`${API_BASE_URL}/ipfs/json/${p.metadataHash}`);
+                  if (r.ok) {
+                    const j = await r.json();
+                    let first = Array.isArray(j?.images) && j.images.length > 0 ? j.images[0] : null;
+                    if (
+                      !first &&
+                      j?.documents &&
+                      Array.isArray(j.documents.additional) &&
+                      j.documents.additional.length > 0
+                    ) {
+                      first = j.documents.additional[0];
+                    }
+                    const cid = typeof first === "string" ? first : first?.cid || first?.ipfsHash || first?.hash;
+                    imageUrl = cid ? `${API_BASE_URL}/ipfs/raw/${cid}` : (first?.url as string | undefined);
                   }
-                  const cid =
-                    typeof first === "string"
-                      ? first
-                      : first?.cid || first?.ipfsHash || first?.hash;
-                  imageUrl = cid
-                    ? `https://gateway.pinata.cloud/ipfs/${cid}`
-                    : (first?.url as string | undefined);
+                } catch (e) {
+                  // ignore; leave imageUrl undefined
                 }
-              } catch {}
-            }
+              }
             return {
               id: String(p.landId),
               location: p.location || "Unknown",

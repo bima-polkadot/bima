@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Upload, MapPin, DollarSign, FileText, ArrowRight } from 'lucide-react';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
-import { api } from '../lib/api';
+import { api, API_BASE_URL } from '../lib/api';
 
 interface FormData {
   size: string;
@@ -78,7 +78,7 @@ export const ListLandForm = () => {
       };
       // Check propagation (optional)
       if (ipfsHash) {
-        const gatewayUrl = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
+        const gatewayUrl = `${API_BASE_URL}/ipfs/raw/${ipfsHash}`;
         try {
           const resp = await fetch(gatewayUrl, { method: 'HEAD' });
           fileData.gatewayOk = resp.ok;
@@ -284,7 +284,7 @@ export const ListLandForm = () => {
                   <>
                     <span className="text-green-600 font-semibold">✓ Uploaded</span>
                     <a
-                      href={`https://gateway.pinata.cloud/ipfs/${files.ownershipProof.hash}`}
+                      href={`${API_BASE_URL}/ipfs/raw/${files.ownershipProof.hash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="underline text-blue-500"
@@ -323,7 +323,7 @@ export const ListLandForm = () => {
                   <>
                     <span className="text-green-600 font-semibold">✓ Uploaded</span>
                     <a
-                      href={`https://gateway.pinata.cloud/ipfs/${files.surveyMap.hash}`}
+                      href={`${API_BASE_URL}/ipfs/raw/${files.surveyMap.hash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="underline text-blue-500"
@@ -364,7 +364,7 @@ export const ListLandForm = () => {
                       <>
                         <span className="text-green-600 font-semibold">✓ Uploaded</span>
                         <a
-                          href={`https://gateway.pinata.cloud/ipfs/${doc.hash}`}
+                          href={`${API_BASE_URL}/ipfs/raw/${doc.hash}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="underline text-blue-500"

@@ -46,14 +46,107 @@ export function createApp(deps = {}) {
   app.get('/ipfs/json/:cid', async (req, res) => {
     try {
       const { cid } = req.params;
+      const cacheDir = path.join(process.cwd(), '.ipfs_cache');
+      const cacheFile = path.join(cacheDir, `${cid}.json`);
+      // Ensure cache dir exists
+      if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
+
+      // If we have a cached copy, return it immediately
+      if (fs.existsSync(cacheFile)) {
+        try {
+          const cached = fs.readFileSync(cacheFile, 'utf8');
+          const parsed = JSON.parse(cached);
+          res.setHeader('Cache-Control', 'public, max-age=300');
+          return res.json(parsed);
+        } catch (e) {
+          // Fall through to re-fetch if cache parse fails
+        }
+      }
+
+      const url = `https://gateway.pinata.cloud/ipfs/${cid}`;
+      const r = await fetch(url, { method: 'GET' });
+      // If upstream returns non-JSON or error, try to return cached if available
+      if (!r.ok) {
+        if (fs.existsSync(cacheFile)) {
+          try {
+            const cached = fs.readFileSync(cacheFile, 'utf8');
+            const parsed = JSON.parse(cached);
+            res.setHeader('Cache-Control', 'public, max-age=300');
+            return res.json(parsed);
+          } catch (e) {
+            // ignore and return gateway status below
+          }
+        }
+        return res.status(r.status).json({ error: `Gateway error ${r.status}` });
+      }
+
+      // Read body as text first to avoid r.json() throwing on empty bodies
+      const text = await r.text();
+      if (!text || text.trim().length === 0) {
+        if (fs.existsSync(cacheFile)) {
+          try {
+            const cached = fs.readFileSync(cacheFile, 'utf8');
+            const parsed = JSON.parse(cached);
+            res.setHeader('Cache-Control', 'public, max-age=300');
+            return res.json(parsed);
+          } catch (e) {
+            // continue to send error
+          }
+        }
+        return res.status(502).json({ error: 'Empty response from IPFS gateway' });
+      }
+
+      let data = null;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        // If parsing fails, return an object with raw text to avoid throwing on frontend
+        data = { raw: text };
+      }
+
+      // Cache successful fetches
+      try {
+        fs.writeFileSync(cacheFile, JSON.stringify(data));
+      } catch (e) {
+        // ignore cache write errors
+      }
+
+      res.setHeader('Cache-Control', 'public, max-age=300');
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ error: error.message || String(error) });
+    }
+  });
+
+  // IPFS: Proxy raw file fetch (images, binaries) and add CORS headers
+  app.get('/ipfs/raw/:cid', async (req, res) => {
+    try {
+      const { cid } = req.params;
       const url = `https://gateway.pinata.cloud/ipfs/${cid}`;
       const r = await fetch(url, { method: 'GET' });
       if (!r.ok) {
-        return res.status(r.status).json({ error: `Gateway error ${r.status}` });
+        const text = await r.text().catch(() => '');
+        res.status(r.status).send(text || `Gateway error ${r.status}`);
+        return;
       }
-      const data = await r.json();
-      res.setHeader('Cache-Control', 'public, max-age=60');
-      res.json(data);
+
+      // Copy a few useful headers from upstream and allow CORS
+      const copyHeaders = ['content-type', 'content-length', 'content-disposition', 'cache-control'];
+      copyHeaders.forEach((h) => {
+        const v = r.headers.get(h);
+        if (v) res.setHeader(h, v);
+      });
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+      // Stream the response body to client
+      if (r.body && typeof r.body.pipe === 'function') {
+        r.body.pipe(res);
+      } else {
+        const buf = await r.arrayBuffer();
+        res.send(Buffer.from(buf));
+      }
     } catch (error) {
       res.status(500).json({ error: error.message || String(error) });
     }
