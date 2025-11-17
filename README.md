@@ -9,7 +9,7 @@
 
 ## 📋 Project Documentation
 - **📊 Pitch Deck**: [View Our Presentation](https://drive.google.com/file/d/16nKwOr_uoXWRNLbOG6oISDfWea1ZPTVs/view?usp=sharing)
-
+ **📊 Live Project **: https://bima-polkadot.vercel.app/
 ## 🌍 Overview
 
 **BIMA** is a revolutionary decentralized marketplace that leverages blockchain technology, decentralized identifiers (DIDs), and tokenized land titles to build a transparent, trusted, and community-driven land ecosystem. 
