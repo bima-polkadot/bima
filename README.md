@@ -327,16 +327,22 @@ graph TD
 - **🔄 User Testing**: Ongoing with African land registry partners
 - **📱 Mobile App**: Development in progress
 
-  ## 🎥 Video Demo
+## 🎥 Video Demo
 
-  <<<<<<< HEAD
+## 🎥 Video Demo
+
+<<<<<<< HEAD
 align="center">
   <a href="https://youtu.be/Bq_2gSNj7os"
 =======
 <p align="center">
-  <a href="[https://youtu.be/veQ7uCloS7Q?si=QMmFdKspfB_vw6-B)">
+  <a href="https://youtu.be/veQ7uCloS7Q?si=QMmFdKspfB_vw6-B">
 >>>>>>> be4dd6d20de4d16fda990aaef3b3274b464f8bd9
+    <img src="https://img.icons8.com/clouds/500/video-playlist.png" alt="Watch BIMA Demo Video" width="60%" />
+  </a>
+</p>
 
+📽️ **Click the image above to watch the full platform demo**
 
 ## 👨‍💻 Team
 
