@@ -329,15 +329,13 @@ graph TD
 
 ## 🎥 Video Demo
 
-## 🎥 Video Demo
-
 <<<<<<< HEAD
 align="center">
   <a href="https://youtu.be/Bq_2gSNj7os"
 =======
 <p align="center">
-  <a href="https://youtu.be/veQ7uCloS7Q?si=QMmFdKspfB_vw6-B">
->>>>>>> be4dd6d20de4d16fda990aaef3b3274b464f8bd9
+  <a href="https://youtu.be/target="_blank">
+>>>>>>>QMmFdKspfB_vw6-B
     <img src="https://img.icons8.com/clouds/500/video-playlist.png" alt="Watch BIMA Demo Video" width="60%" />
   </a>
 </p>
