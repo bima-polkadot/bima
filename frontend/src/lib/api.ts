@@ -1,7 +1,29 @@
 import axios from "axios";
 
 // Polkadot Service URL - Port 3000
-export const API_BASE_URL = import.meta.env.VITE_POLKADOT_SERVICE_URL || "http://localhost:3000";
+// export const API_BASE_URL = import.meta.env.VITE_POLKADOT_SERVICE_URL || "http://localhost:3000";
+
+// Function to detect if running locally or in production
+const getPolkadotServiceURL = () => {
+  // Check if we have an explicit environment variable
+
+  if (import.meta.env.VITE_POLKADOT_SERVICE_URL) {
+    return import.meta.env.VITE_POLKADOT_SERVICE_URL;
+  }
+
+  // Auto-detect based on environment
+  const isLocalDevelopment =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname.startsWith("192.168.") ||
+    window.location.hostname.endsWith(".local") ||
+    import.meta.env.DEV;
+  return isLocalDevelopment
+    ? "http://localhost:3000"
+    : "https://bima-c1ew.onrender.com";
+};
+// Polkadot Token Service URL - Auto-detects environment
+export const API_BASE_URL = getPolkadotServiceURL();
 
 // Main Backend API URL - Port 5000
 export const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:5000";
