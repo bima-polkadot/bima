@@ -335,7 +335,7 @@ align="center">
   <a href="https://youtu.be/veQ7uCloS7Q"
 =======
 <p align="center">
-  <a href="https://youtu.be/target="_blank">
+  <a href="https://youtu.be/U3UYqV1IlkQ?si=ORJ4Y0kx3I60m_er/target="_blank">
 >>>>>>>QMmFdKspfB_vw6-B
     <img src="https://img.icons8.com/clouds/500/video-playlist.png" alt="Watch BIMA Demo Video" width="60%" />
   </a>
